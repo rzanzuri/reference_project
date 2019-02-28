@@ -35,6 +35,6 @@ if __name__ == "__main__":
         for sentence in sentences:
             result = get_ner_with_spacy(sentence)
             if result == None or result == '':
-                f.write("- For sentense: '" + sentence + "' - dont have ner.\n")
+                f.write("- For sentense: '" + sentence + "' - don't have ner.\n")
             else:
                 f.write("- The entity of '" + sentence + "' is: " + result + ".\n")
