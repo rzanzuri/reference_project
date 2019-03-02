@@ -1,5 +1,6 @@
 # pip install yandex-translater
 import sys
+import os
 from yandex.Translater import Translater
 translator = Translater()
 translator.set_key('trnsl.1.1.20190228T112412Z.abfa0588f62c8726.d69833662a3ed1c8a58af0fc9a15a200bc5fdcf9') # Api key found on https://translate.yandex.com/developers/keys
@@ -11,7 +12,7 @@ num = 0
 total_ratio = (0,0) # (count,average)
 data = ""
 capacity = 5000
-name_file = './wiki_10'
+name_file = os.getcwd() + r'\wiki_10'
 source = 'en'
 destination = 'he'
 translator.set_from_lang(source)
