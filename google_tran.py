@@ -14,7 +14,8 @@ with open('./wiki_10', encoding = "UTF-8") as f:
                     continue
                 else:
                     try:
-                    #line = line.rstrip()
+                    #
+                    # line = line.rstrip()
                         if(num >= start_from):
                             trans = gs.translate(line, 'iw')
                             hebrew_f.write(trans)
