@@ -1,5 +1,5 @@
-import paralleldots 
-paralleldots.set_api_key("9hFGKKNP1hfGuWCeKZZLZGx3If214gRcBNRRWJcayCg")
+#import paralleldots 
+#paralleldots.set_api_key("9hFGKKNP1hfGuWCeKZZLZGx3If214gRcBNRRWJcayCg")
 
 # pip install spacy 
 # python -m spacy download en_core_web_sm
@@ -17,13 +17,13 @@ def get_ner_with_spacy(sentence):
             result.append(entity.text)
     return ", ".join(result)
 
-def get_ner (sentense):
-    output = paralleldots.ner(sentense)
-    if not "entities" in output: return None,None
-    for element in output['entities']:
-        if element["category"] == "name":
-            return element["name"],element["confidence_score"]
-    return None,None
+#def get_ner (sentense):
+    # output = paralleldots.ner(sentense)
+    # if not "entities" in output: return None,None
+    # for element in output['entities']:
+    #     if element["category"] == "name":
+    #         return element["name"],element["confidence_score"]
+    # return None,None
 
 
 if __name__ == "__main__":
