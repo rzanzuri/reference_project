@@ -5,11 +5,11 @@ from keras.layers import Input, LSTM, Dense
 import numpy as np
 
 batch_size = 64  # Batch size for training.
-epochs = 100  # Number of epochs to train for.
+epochs = 80  # Number of epochs to train for.
 latent_dim = 256  # Latent dimensionality of the encoding space.
-num_samples = 100000  # Number of samples to train on.
+num_samples = 10000  # Number of samples to train on.
 # Path to the data txt file on disk.
-data_path = 'fra-eng/fra.txt'
+data_path = 'D:\\ReferenceProject\\reference_project\\Michael\\fra-eng\\eng.fra.txt'
 
 # Vectorize the data.
 input_texts = []
@@ -18,34 +18,19 @@ input_characters = set()
 target_characters = set()
 with open(data_path, 'r', encoding='utf-8') as f:
     lines = f.read().split('\n')
-
-eng = open("eng.txt",'a', encoding='utf-8')
-fr = open("fr.txt",'a', encoding='utf-8')
-enf_rf = open("eng.fra.txt.ans",'a', encoding='utf-8')
-for line in lines:
-    try:
-        input_text, target_text = line.split('\t')
-    except:
-        continue
+for line in lines[: min(num_samples, len(lines) - 1)]:
+    input_text, target_text = line.split('\t')
     # We use "tab" as the "start sequence" character
     # for the targets, and "\n" as "end sequence" character.
-    target_text = target_text
+    target_text = '\t' + target_text + '\n'
     input_texts.append(input_text)
     target_texts.append(target_text)
-    eng.write(input_text + "\n")
-    fr.write(target_text + "\n")
-    enf_rf.write(input_text + "\n")
-    enf_rf.write(target_text + "\n")   
-eng.close()
-fr.close()
-enf_rf.close()
-
-    # for char in input_text:
-    #     if char not in input_characters:
-    #         input_characters.add(char)
-    # for char in target_text:
-    #     if char not in target_characters:
-    #         target_characters.add(char)
+    for char in input_text:
+        if char not in input_characters:
+            input_characters.add(char)
+    for char in target_text:
+        if char not in target_characters:
+            target_characters.add(char)
 
 input_characters = sorted(list(input_characters))
 target_characters = sorted(list(target_characters))
@@ -192,4 +177,4 @@ for seq_index in range(100):
     decoded_sentence = decode_sequence(input_seq)
     print('-')
     print('Input sentence:', input_texts[seq_index])
-print('Decoded sentence:', decoded_sentence)
+    print('Decoded sentence:', decoded_sentence)
