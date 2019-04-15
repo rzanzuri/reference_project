@@ -3,17 +3,15 @@ import re
 import datetime
 import Tokenizer
 from nltk.tokenize import regexp_tokenize, wordpunct_tokenize, blankline_tokenize
-source_dir = "./Data/"
 
 # check how many times any word show in the fname in average
-# fname - the file
-# with lang the text wrote in
-# fname should be
-def word_average(fname, lang):
+# input: fname - the file
+# fname should be csv file
+# output: {fname}_dictionary.csv
+def word_average(fname):
     dict_words = {}
-    name_file = fname + "_" + lang
-    dict_file = open(name_file + "_dictionary.csv", "w", encoding='utf8')
-    with open(name_file, encoding='utf8') as f:
+    dict_file = open(fname + "_dictionary.csv", "w", encoding='utf8')
+    with open(fname, encoding='utf8') as f:
         for line in f:
             if(line == "\n" or line == ' '):
                 continue
@@ -38,8 +36,11 @@ def word_average(fname, lang):
     print("average is:", words_count/len(dict_words), file=dict_file)
     print("average is:", words_count/len(dict_words))
     dict_file.close()  
-
+# check how many letter have in any word in average
+# input: fname - the file with the text
+# output: the average
 def check_ave_length_word(fname):
+    dict_words = {}
     with open(fname, encoding='utf8') as f:
         for line in f:
             if(line == "\n" or line == ' '):
@@ -61,19 +62,23 @@ def check_ave_length_word(fname):
     print("Total words:", total_words)
     print("Total length words:", total_length_words)
     print("Avarege length word:", total_length_words/total_words)
+    return total_length_words/total_words
 
-
-
+# check how many tokenizer have in average
+# input: fname - the file to read
+#        dict_file - file with old tokens
+# output: {fname}_tokenizer.csv - new token files
+#         dict_words - dictionary with the tokens (pre,root,suff,count) as value and the word as a key
 def checking_tokenizer_of_all_text (fname, dict_file):
     length = 10000
     count = 0
 
-    Tokenizer.load_tokens(dict_file, dict_words)
+    dict_words = Tokenizer.load_tokens(dict_file, 0)
     with open(fname,encoding='utf8') as f:
         for line in f:
             count += 1
             if count > length:
-                Tokenizer.save_tokens(fname + "_tokenizer.csv", dict_words)
+                Tokenizer.save_tokens(fname + "_tokenizer.csv", dict_words, 1)
                 count = 0
             if(line == "\n" or line == ' '):
                 continue
@@ -89,7 +94,9 @@ def checking_tokenizer_of_all_text (fname, dict_file):
                         dict_words[word] = dict_words[word] + (1,)
                 else:
                     dict_words[word] = Tokenizer.split_to_tokens(word) + (1,)
-        
+    return dict_words
+
+# loading token file and return the average of the tokens per word
 def check_ave_of_token (fname):
     dict_words = Tokenizer.load_tokens(fname, with_count=1)
     word_count_regular = 0
@@ -113,13 +120,7 @@ def check_ave_of_token (fname):
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
-    lang = "he"
-    fname = source_dir + 'wiki_10'
-    #check_ave_of_token(fname + "_tokenizer.csv")
-    check_ave_length_word(fname)
-    #checking_tokenizer_of_all_text(fname, fname + "_tokenizer.csv")
-    #Tokenizer.save_tokens(fname + "_tokenizer.csv",dict_words)
-    #word_average(fname, lang)
+
 
     finish = datetime.datetime.now()
     print("end:", finish)

@@ -4,8 +4,10 @@ import random
 import datetime
 
 import Python_lib.Tokenizer as Tokenizer
+import Python_lib.Statistics_text as Statistics
 
-source = r"./Data/"
+
+source_dir = r"./Data/"
 
 def tokenizer_main():
     token_words = {}
@@ -53,12 +55,20 @@ def tokenizer_main():
     #save_tokens(token_file)
     return 0
 
+def statistics_main():
+    fname = source_dir + 'wiki_10'
+    #Statistics.check_ave_of_token(fname + "_tokenizer.csv")
+    Statistics.check_ave_length_word(fname)
+    #Statistics.checking_tokenizer_of_all_text(fname, fname + "_tokenizer.csv")
+    #Tokenizer.save_tokens(fname + "_tokenizer.csv",dict_words)
+    #Statistics.word_average(fname, lang)
 
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
 
-    tokenizer_main()    
+    #tokenizer_main()
+    #statistics_main()    
 
 
 
