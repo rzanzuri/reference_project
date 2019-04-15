@@ -4,6 +4,7 @@ import datetime
 import Tokenizer
 from nltk.tokenize import regexp_tokenize, wordpunct_tokenize, blankline_tokenize
 dict_words = {}
+source_dir = "./Data/"
 
 def word_average(fname, lang):
     name_file = fname + "_" + lang
@@ -109,7 +110,7 @@ if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
     lang = "he"
-    fname = './wiki_10'
+    fname = source_dir + 'wiki_10'
     #check_ave_of_token(fname + "_tokenizer.csv")
     check_ave_length_word(fname)
     #checking_tokenizer_of_all_text(fname, fname + "_tokenizer.csv")
