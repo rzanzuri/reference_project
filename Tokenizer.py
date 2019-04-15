@@ -1,13 +1,16 @@
 #pip install --upgrade google-cloud-translate
 import re
-
+import datetime
 from nltk.corpus import words
 from nltk.corpus import wordnet as wn
 from nltk.stem import PorterStemmer
 from nltk.stem import SnowballStemmer 
 from nltk.tokenize import regexp_tokenize, wordpunct_tokenize, blankline_tokenize
 import spacy
+import csv
+import random
 nlp = spacy.load("en_core_web_sm")
+token_words = {}
 
 # From https://dictionary.cambridge.org/grammar/british-grammar/word-formation/prefixes
 english_prefixes = {
@@ -46,8 +49,9 @@ english_prefixes = {
 porter = PorterStemmer()
 stemmer = SnowballStemmer("english",)
 
-whitelist = list(wn.words()) + words.words()
+whitelist = set(list(wn.words()) + words.words())
 english_words = ""
+
 with open(r'.\EnglishWords.txt') as word_file:
     english_words = set(word.strip().lower() for word in word_file)  
 
@@ -104,35 +108,109 @@ def get_suffix(word, root):
             print(word,root)
     return ""
 
+# set option to 0 to running tokenizer on line
+# set option to 1 (default) to running tokenizer per word 
+def tokenizer(line, option=1):
+    if option == 1:
+        words = regexp_tokenize(line, pattern=r'[\w\']+\w|[\d\.\,]+[\%\$]?|[\"\'\-\(\)\,]|\S')
+        for word in words:
+            word = word.lower()
+            if word in token_words:
+                continue
+            #print(word)
+            temp = removePref(word)
+            prefix = get_prefix(word, temp)
+            root = nlp(temp)[0].lemma_
+            suffix = get_suffix(temp ,root)
+            token_words[word] = (prefix,root,suffix)
+    else:
+        token_line = nlp(temp)[0].lemma_
+        if len(line.split()) == len(token_line.split()):
+            True
+            
+def load_tokens(file_name, token_words=token_words, with_count=0):
+    with open(file_name, encoding='utf-8') as file_tokens:
+        file_tokens.readline() # to removing the header
+        lines = csv.reader(file_tokens)
+        for line in lines:
+            try:
+                if with_count:
+                    token_words[line[0]]=(line[1],line[2],line[3],line[4])
+                else:
+                    token_words[line[0]]=(line[1],line[2],line[3])
+            except:
+                print(f"have an issue with {line}")
+
+def save_tokens(file_name, token_words = token_words):
+    with open(file_name, "w", encoding='utf-8') as token_file:
+        print("word", "prefix", "root", "suffix", "count", file=token_file, sep=',')
+        for word in token_words:
+            try:
+                print('"' + str(word), token_words[word][0], token_words[word][1],  token_words[word][2], str(token_words[word][3]) + '"', file=token_file , sep='","')
+            except:
+                print(f"{word} is not wrote to tokens.")
+
+def split_to_tokens(word):
+    temp = removePref(word)
+    prefix = get_prefix(word, temp)
+    root = nlp(temp)[0].lemma_
+    suffix = get_suffix(temp ,root)
+    token_words[word] = (prefix,root,suffix, 1)
+    return (prefix,root,suffix)
+
+def get_token_as_word(tokens):
+    words = " ".join(token for token in tokens)
+    words = words.rstrip()
+    return words
 
 if __name__ == "__main__":
+    start = datetime.datetime.now()
+    print("start:", start)
+
+    options = [1,2,3]
     name_file = './wiki_10'
-    count = 10
-    num = 1
-    token_words = {}
-    token_file = open(name_file + "_lines_" + str(num) + "-" + str(num + count) + "_tokens.csv", "a")
-    with open(name_file, encoding='utf-8') as f:
-        for line in f:
-            if(line == "\n" or line == ' ' or len(line.split(" ")) <= 3):
-                continue
-            line = line.rstrip()
-            words = regexp_tokenize(line, pattern=r'[\w\']+\w|\$[\d\.]+|[\"\'\-\(\)\,]|\S+')
-            #words = ["unlike","playing", "rerun", "remember", "doing", "does", "refael","feet","ate", "opened", "inside", "united", "385","386.9","987$"]
-            for word in words:
-                word = word.lower()
-                #print(word)
-                temp = removePref(word)
-                prefix = get_prefix(word, temp)
-                root = nlp(temp)[0].lemma_
-                suffix = get_suffix(temp ,root)
-                token_words[word] = (prefix,root,suffix)
-            if num > count:
-                break
-            num += 1
-    print("word", "prefix", "root", "suffix", file=token_file, sep=',')
-    for word in token_words:
-        #token_file.write(word + "\twas split to:\n'" + token_words[word][0] + "',\t'" + token_words[word][1] + "',\t'" + token_words[word][2] + "'\n" )
-        print(word, token_words[word][0], token_words[word][1],  token_words[word][2], file=token_file, sep=' ,')
+    dict_token_file = "./wiki_10_tokens_lines_0-5000.csv"
+    load_tokens(dict_token_file)
+    count = 5000
+    num = 0
+    token_file = name_file + "_tokens_lines_" + str(num) + "-" + str(num + count) + ".csv"
     
-    token_file.close()  
-        
+    triple_file = open(name_file + "_triple", "w", encoding='utf-8')
+    for j in [1,2,3]:
+        with open(name_file, encoding='utf-8') as f:
+            for i, line in enumerate(f, 1):
+                #line = "As a result, the St. Gallen Grand Council agreed on 17 May 1887 to a request for a government loan of Swiss francs (CHF) 7000 for preparatory work for a rail link from the Linth area via the Toggenburg to St. Gallen. The first expert opinion recommended a gap between Ebnat and Uznach, but this would still have required a detour via Wil to reach St. Gallen. An initiative committee ('Initiativkomitee') for a St. Gallen–Herisau–Degersheim–Neckertal–Wattwil–Rapperwil railway link was formed in Degersheim in 1889. The leader was the Degersheim embroidery manufacturer Isidor Grauer-Frey, who also campaigned for an extension of the line beyond Rapperswil to Zug in order to make a connection to the Gotthard Railway. The maximum grade of 5.0% planned for the Zürichsee–Gotthardbahn—the later Schweizerische Südostbahn (SOB)—seemed to him unsuitable for main-line traffic. In 1889, the Grand Council granted the initiative committee a contribution of CHF 5,000 to submit an application for a concession to St. Gallen–Zug. This concession was granted by the Federal Assembly on 27 June 1890."
+                if num > count:
+                    print(f"Total lines is:{i}")
+                    break
+                if(line == "\n" or line == ' ' or len(line.split(" ")) <= 3):
+                    continue
+                line = line.rstrip()
+                new_line = ""
+                words = re.findall(r'\d+[.,]\d+\([.,]\d\)*|\'s|\w+\.\w+|\w+|\S',line)
+                #words = ["unlike","playing", "rerun", "remember", "doing", "does", "refael","feet","ate", "opened", "inside", "united", "385","386.9","987$"]
+                for word in words:
+                    word = word.lower()
+                    choice = random.choice(options)
+                    if choice == 1: # take the word as is
+                        new_line += word + " "
+                    elif choice == 2: # split to tokens
+                        if word in token_words:
+                            new_line += get_token_as_word(token_words[word]) + " "
+                            print(token_words[word])
+                        else:
+                            new_line += get_token_as_word(split_to_tokens(word)) + " "
+                            print(get_token_as_word(split_to_tokens(word)))
+                    elif choice == 3:
+                        new_line += " ".join(c for c in list(word)) + " "
+                new_line = new_line.rstrip()
+                print("line:", line)
+                print("new_line:", new_line)
+                num += 1
+
+    #save_tokens(token_file)
+
+    finish = datetime.datetime.now()
+    print("end:", finish)
+    print("total:", finish - start)
+
