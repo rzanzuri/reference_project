@@ -56,3 +56,18 @@ def get_sentences(path,dir_path = "") :
     else:
         print("ERROR: get_sentences")
         return None
+
+def get_temp(dir_path, dest_dir):
+    line = ""
+    for filename in os.listdir(dir_path): 
+        with open(dest_dir + filename + ".lettres", 'w', encoding = 'utf-8') as f:
+            text = get_text_file(filename,dir_path)    
+            for char in text:
+                if(char == "\t"):
+                    line += "| "
+                elif char == "\n":
+                    line += char
+                    f.write(line)
+                    line = ""
+                else:
+                    line += char + " "
