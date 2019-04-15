@@ -3,10 +3,14 @@ import re
 import datetime
 import Tokenizer
 from nltk.tokenize import regexp_tokenize, wordpunct_tokenize, blankline_tokenize
-dict_words = {}
 source_dir = "./Data/"
 
+# check how many times any word show in the fname in average
+# fname - the file
+# with lang the text wrote in
+# fname should be
 def word_average(fname, lang):
+    dict_words = {}
     name_file = fname + "_" + lang
     dict_file = open(name_file + "_dictionary.csv", "w", encoding='utf8')
     with open(name_file, encoding='utf8') as f:
@@ -87,7 +91,7 @@ def checking_tokenizer_of_all_text (fname, dict_file):
                     dict_words[word] = Tokenizer.split_to_tokens(word) + (1,)
         
 def check_ave_of_token (fname):
-    Tokenizer.load_tokens(fname, dict_words,with_count=1)
+    dict_words = Tokenizer.load_tokens(fname, with_count=1)
     word_count_regular = 0
     word_count_tokens = 0
     for word in dict_words:
