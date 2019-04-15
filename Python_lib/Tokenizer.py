@@ -110,9 +110,9 @@ def get_suffix(word, root):
 
 # set option to 0 to running tokenizer on line
 # set option to 1 (default) to running tokenizer per word 
-def tokenizer(line, token_words, option=1):
+def tokenizer(line, token_words, option = 1):
     if option == 1:
-        words = regexp_tokenize(line, pattern=r'[\w\']+\w|[\d\.\,]+[\%\$]?|[\"\'\-\(\)\,]|\S')
+        words = re.findall(r'\d+\([.,]\d\)*|\w+\.\w+|\w+|\S',line)
         for word in words:
             word = word.lower()
             if word in token_words:
@@ -124,9 +124,10 @@ def tokenizer(line, token_words, option=1):
             suffix = get_suffix(temp ,root)
             token_words[word] = (prefix,root,suffix)
     else:
-        token_line = nlp(temp)[0].lemma_
+        token_line = " ".join([token.lemma_ for token in nlp(line)])
         if len(line.split()) == len(token_line.split()):
-            True
+            print("line:",line)
+            print("token line:",token_line)
             
 def load_tokens(file_name, with_count = 0):
     token_words = {}

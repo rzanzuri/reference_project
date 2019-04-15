@@ -1,7 +1,7 @@
 #pip install --upgrade google-cloud-translate
 import re
 import datetime
-import Tokenizer
+import Python_lib.Tokenizer as Tokenizer
 from nltk.tokenize import regexp_tokenize, wordpunct_tokenize, blankline_tokenize
 
 # check how many times any word show in the fname in average
@@ -36,6 +36,7 @@ def word_average(fname):
     print("average is:", words_count/len(dict_words), file=dict_file)
     print("average is:", words_count/len(dict_words))
     dict_file.close()  
+
 # check how many letter have in any word in average
 # input: fname - the file with the text
 # output: the average
@@ -115,13 +116,3 @@ def check_ave_of_token (fname):
     print(word_count_regular)
     print(word_count_tokens)
     print("total:", word_count_tokens/word_count_regular)
-
-
-if __name__ == "__main__":
-    start = datetime.datetime.now()
-    print("start:", start)
-
-
-    finish = datetime.datetime.now()
-    print("end:", finish)
-    print("total:", finish - start)

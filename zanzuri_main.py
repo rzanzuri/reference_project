@@ -17,9 +17,9 @@ def tokenizer_main():
     Tokenizer.load_tokens(dict_token_file)
     count = 5000
     num = 0
-    token_file = name_file + "_tokens_lines_" + str(num) + "-" + str(num + count) + ".csv"
+    #token_file = name_file + "_tokens_lines_" + str(num) + "-" + str(num + count) + ".csv"
     
-    triple_file = open(name_file + "_triple", "w", encoding='utf-8')
+    #triple_file = open(name_file + "_triple", "w", encoding='utf-8')
     for j in [1,2,3]:
         with open(name_file, encoding='utf-8') as f:
             for i, line in enumerate(f, 1):
@@ -69,9 +69,8 @@ if __name__ == "__main__":
 
     #tokenizer_main()
     #statistics_main()    
-
-
-
+    Tokenizer.tokenizer("this sets a minimum bound on the number of times a bigram needs to appear before it can be considered a collocation, in addition to log likelihood statistics", {}, 0)
+    #Tokenizer.tokenizer("collocation", {}, 0)
 
     finish = datetime.datetime.now()
     print("end:", finish)
