@@ -2,9 +2,13 @@ import re
 import csv
 import random
 import datetime
+from os import listdir,mkdir,rmdir
+from os.path import isfile, join
 
 import Python_lib.Tokenizer as Tokenizer
 import Python_lib.Statistics_text as Statistics
+import Python_lib.read_html as read_html
+import Python_lib
 
 
 source_dir = r"./Data/"
@@ -63,14 +67,43 @@ def statistics_main():
     #Tokenizer.save_tokens(fname + "_tokenizer.csv",dict_words)
     #Statistics.word_average(fname, lang)
 
+def parse_html_files():
+    my_dir = r"C:/Users/rzanzuri/Desktop/reference_project/Data/online"
+    outputs_dir = my_dir + "_text"
+    #rmdir(outputs_dir)
+    #mkdir(outputs_dir)
+    files = [f for f in listdir(my_dir) if isfile(join(my_dir, f))]
+    num = 0
+    for html_file in files:
+        if html_file.endswith(".html") and  html_file.startswith("f_0"):
+            #if num == 100:
+            #    exit()
+            num += 1
+            #read_html.read_url_2_text()
+            html = read_html.read_url_2_text("file:///" + join(my_dir, html_file))
+            text = read_html.clean_html_page(html)
+            with open(join(outputs_dir, html_file.replace("html", "txt")), "w", encoding="utf-8") as f:
+                f.write(text)
+
+def split_to_sentence(fname, delimiter = "."):
+     sentences = []
+     with open(fname, encoding="utf-8") as f:
+          text = f.read()
+          sentences = text.split(delimiter)
+     with open(fname.replace(".txt","_sentences.txt"),"w", encoding="utf-8") as f_sen:
+          for sentence in sentences:
+               f_sen.write(sentence + delimiter + "\n")
+
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
 
     #tokenizer_main()
     #statistics_main()    
-    Tokenizer.tokenizer("this sets a minimum bound on the number of times a bigram needs to appear before it can be considered a collocation, in addition to log likelihood statistics", {}, 0)
+    #Tokenizer.tokenizer("this sets a minimum bound on the number of times a bigram needs to appear before it can be considered a collocation, in addition to log likelihood statistics", {}, 0)
     #Tokenizer.tokenizer("collocation", {}, 0)
+    #parse_html_files()
+    split_to_sentence("C:/Users/rzanzuri/Desktop/reference_project/Data/online_text/f_02017.txt")
 
     finish = datetime.datetime.now()
     print("end:", finish)
