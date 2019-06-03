@@ -2,6 +2,13 @@ import re
 import csv
 import random
 import datetime
+import sys
+import os
+os.environ['http_proxy'] = 'http://proxy-chain.intel.com:911'
+os.environ['HTTP_PROXY'] = 'http://proxy-chain.intel.com:911'
+os.environ['https_proxy'] = 'https://proxy-chain.intel.com:912'
+os.environ['HTTPS_PROXY'] = 'https://proxy-chain.intel.com:912'
+
 from os import listdir,mkdir,rmdir
 from os.path import isfile, join
 
@@ -85,7 +92,7 @@ def parse_html_files():
             with open(join(outputs_dir, html_file.replace("html", "txt")), "w", encoding="utf-8") as f:
                 f.write(text)
 
-def split_to_sentence(fname, delimiter = "."):
+def split_text_to_sentence(fname, delimiter = "."):
      sentences = []
      with open(fname, encoding="utf-8") as f:
           text = f.read()
@@ -93,6 +100,19 @@ def split_to_sentence(fname, delimiter = "."):
      with open(fname.replace(".txt","_sentences.txt"),"w", encoding="utf-8") as f_sen:
           for sentence in sentences:
                f_sen.write(sentence + delimiter + "\n")
+
+def write_text_to_file_from_url(url, start, amount, website_name, html_part = ["p"]):
+    for i in range(start, start + amount):
+        try:
+            html = read_html.read_url_2_text(f"{url}{i}")
+            if html == "":
+                continue
+            text = read_html.parse_html_to_text(html, html_part)
+            if len(text) > 10:
+                with open(f"./Data/download_pages/{website_name}_{i}.txt", "w", encoding="utf-8") as f:
+                    f.write(text)
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
 
 if __name__ == "__main__":
     start = datetime.datetime.now()
@@ -103,7 +123,8 @@ if __name__ == "__main__":
     #Tokenizer.tokenizer("this sets a minimum bound on the number of times a bigram needs to appear before it can be considered a collocation, in addition to log likelihood statistics", {}, 0)
     #Tokenizer.tokenizer("collocation", {}, 0)
     #parse_html_files()
-    split_to_sentence("C:/Users/rzanzuri/Desktop/reference_project/Data/online_text/f_02017.txt")
+    #split_text_to_sentence("C:/Users/rzanzuri/Desktop/reference_project/Data/online_text/f_02017.txt")
+    write_text_to_file_from_url("https://news.walla.co.il/item/", 2600000, 10000, "walla")
 
     finish = datetime.datetime.now()
     print("end:", finish)
