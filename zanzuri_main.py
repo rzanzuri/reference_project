@@ -3,14 +3,17 @@ import csv
 import random
 import datetime
 import sys
+import _thread
+from threading import Thread
+import time
 import os
-os.environ['http_proxy'] = 'http://proxy-chain.intel.com:911'
-os.environ['HTTP_PROXY'] = 'http://proxy-chain.intel.com:911'
-os.environ['https_proxy'] = 'https://proxy-chain.intel.com:912'
-os.environ['HTTPS_PROXY'] = 'https://proxy-chain.intel.com:912'
+#os.environ['http_proxy'] = 'http://proxy-chain.intel.com:911'
+#os.environ['HTTP_PROXY'] = 'http://proxy-chain.intel.com:911'
+#os.environ['https_proxy'] = 'https://proxy-chain.intel.com:912'
+#os.environ['HTTPS_PROXY'] = 'https://proxy-chain.intel.com:912'
 
 from os import listdir,mkdir,rmdir
-from os.path import isfile, join
+from os.path import isfile, join,isdir
 
 import Python_lib.Tokenizer as Tokenizer
 import Python_lib.Statistics_text as Statistics
@@ -104,15 +107,32 @@ def split_text_to_sentence(fname, delimiter = "."):
 def write_text_to_file_from_url(url, start, amount, website_name, html_part = ["p"]):
     for i in range(start, start + amount):
         try:
+            #if isfile(f"./Data/download_pages/{website_name}_{i}.txt"): continue
             html = read_html.read_url_2_text(f"{url}{i}")
             if html == "":
                 continue
             text = read_html.parse_html_to_text(html, html_part)
             if len(text) > 10:
-                with open(f"./Data/download_pages/{website_name}_{i}.txt", "w", encoding="utf-8") as f:
+                if(not isdir(f"./Data/download_pages/{website_name}/")):
+                    mkdir(f"./Data/download_pages/{website_name}/")
+                with open(f"./Data/download_pages/{website_name}/{website_name}_from_{start}_to_{start+amount}.txt", "a", encoding="utf-8") as f:
                     f.write(text)
         except:
             print("Unexpected error:", sys.exc_info()[0])
+
+def run_threads(thread_count, start, count, url, name):
+
+    threads = []
+    try:
+        for i in range(0, thread_count):
+            threads.append(Thread(target=write_text_to_file_from_url, args=(url, start + i * count, count, name,["p"])))
+
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+
+    except:
+        print ("Error: unable to start thread")
+  
 
 if __name__ == "__main__":
     start = datetime.datetime.now()
@@ -124,7 +144,10 @@ if __name__ == "__main__":
     #Tokenizer.tokenizer("collocation", {}, 0)
     #parse_html_files()
     #split_text_to_sentence("C:/Users/rzanzuri/Desktop/reference_project/Data/online_text/f_02017.txt")
-    write_text_to_file_from_url("https://news.walla.co.il/item/", 2600000, 10000, "walla")
+    #write_text_to_file_from_url("https://news.walla.co.il/item/", 2600000, 10000, "walla")
+    #run_threads(1000,2600000, 100, "https://news.walla.co.il/item/", "walla")
+    run_threads(2, 100, 5, "http://www.hidush.co.il/hidush.asp?id=", "hidush")
+
 
     finish = datetime.datetime.now()
     print("end:", finish)

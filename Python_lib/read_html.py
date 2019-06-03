@@ -46,7 +46,7 @@ def parse_html_to_text(html, html_part = ["p"]):
      for line in all_text:
           if not (line.string == None or len(line.string) < 10):
                filter_text.append(line.string)
-     return "".join(filter_text)
+     return (" ".join(filter_text)).replace("  ", " ")
 
 
 #html = read_url_2_text("file:///C:/Users/rzanzuri/Desktop/reference_project/Data/Online/f_00711.html")
