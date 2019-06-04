@@ -29,3 +29,39 @@ with open("./Data/Online/f_00711.html", encoding = "ut") as page:
 #start = parser.get_starttag_text()
 #print(start)
 #a="אעהגכ"
+
+
+# import gensim
+# import random
+# import datetime
+
+# def do_shuf(arr):
+#     random.shuffle(arr)
+#     return arr
+
+# a = ['1','2','3','4','5','6','7']
+# print(do_shuf(a))
+# print(a)
+# print(do_shuf(a))
+# print(a)
+# print(datetime.datetime.now)
+
+
+# sentences = gensim.models.word2vec.LineSentence("./Data/clean_shut/clean_shut.txt")
+# model = gensim.models.Word2Vec.load("./VecModels/clean_shu.vm")
+# x = model.wv['שאלה']
+# print("fisrt:")
+# print(x)
+# model.train(sentences, total_examples=1, epochs=1)
+# y = model.wv['שאלה']
+# print("sec:")
+# print(y)
+# print("eq:")
+
+# print(x == y)
+
+# print("if:")
+# if x == y:
+#     print("if eq")
+# else:
+#     print("not if eq")
