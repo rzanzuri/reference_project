@@ -55,12 +55,8 @@ def parse_maariv_html_to_text(html):
      if title.find("ספורט 1") >= 0:
           all_text = html.find_all('div', class_="article-inner-content")
      else:
-          return ""
           all_text = html.find_all('p')
-          all_text += html.find_all('div')          
-
-     all_text = html.find_all('p')
-     all_text += html.find_all('div', class_="article-inner-content")
+          all_text += html.find_all('div', class_="", id="")          
 
      filter_text = []
      for line in all_text:
@@ -68,10 +64,10 @@ def parse_maariv_html_to_text(html):
                filter_text.append(line.string)
           elif line.text is not None and len(line.text) >= 10:
                filter_text.append(line.text)
-     return (" ".join(filter_text)).replace("  ", " ")     
+     return (" ".join(filter_text)).replace("\n"," ").replace("\t", " ").replace("  ", " ")     
 
-html = read_url_2_text("https://www.maariv.co.il/news/israel/Article-500001")
-text = parse_maariv_html_to_text(html)
+# html = read_url_2_text("https://www.maariv.co.il/news/israel/Article-500001")
+# text = parse_maariv_html_to_text(html)
 
-with open(f"./Data/download_pages/Article-500003.txt", "w", encoding="utf-8") as f:
-     f.write(text)
+# with open(f"./Data/download_pages/Article-500003.txt", "w", encoding="utf-8") as f:
+#      f.write(text)
