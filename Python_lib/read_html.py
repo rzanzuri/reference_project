@@ -49,6 +49,18 @@ def parse_html_to_text(html, html_part = ["p"]):
      return (" ".join(filter_text)).replace("  ", " ")
 
 
+def parse_maariv_html_to_text(html):
+     all_text = html.find_all('p')
+     all_text += html.find_all('div')
+
+     filter_text = []
+     for line in all_text:
+          if line.string is not None and len(line.string) >= 10:
+               filter_text.append(line.string)
+          elif line.text is not None and len(line.text) >= 10:
+               filter_text.append(line.text)
+     return (" ".join(filter_text)).replace("  ", " ")     
+
 #html = read_url_2_text("file:///C:/Users/rzanzuri/Desktop/reference_project/Data/Online/f_00711.html")
 #for i in range(2500000, 2600000):
 #     html = read_url_2_text(f"https://news.walla.co.il/item/{i}")
