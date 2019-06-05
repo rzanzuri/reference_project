@@ -104,35 +104,71 @@ def split_text_to_sentence(fname, delimiter = "."):
           for sentence in sentences:
                f_sen.write(sentence + delimiter + "\n")
 
-def write_text_to_file_from_url(url, start, amount, website_name, html_part = ["p"]):
-    for i in range(start, start + amount):
+def write_text_to_file_from_url(url, start, amount, website_name, dir_name, html_part = ["p"], string=1):
+    if(not isdir(f"{dir_name}")):
+        try:
+            mkdir(f"{dir_name}")
+        except:
+            print("failed to create dir:", dir_name)
+    text_10 = ""
+    for i in range(start, start + amount - 1):
         try:
             #if isfile(f"./Data/download_pages/{website_name}_{i}.txt"): continue
             html = read_html.read_url_2_text(f"{url}{i}")
             if html == "":
                 continue
-            text = read_html.parse_html_to_text(html, html_part)
+            text = read_html.parse_html_to_text(html, html_part, string) + "\n"
             if len(text) > 10:
-                if(not isdir(f"./Data/download_pages/{website_name}/")):
-                    mkdir(f"./Data/download_pages/{website_name}/")
-                with open(f"./Data/download_pages/{website_name}/{website_name}_from_{start}_to_{start+amount}.txt", "a", encoding="utf-8") as f:
-                    f.write(text)
+                text_10 += text
+            if i % 10:
+                with open(f"{dir_name}/{website_name}_from_{start}_to_{start+amount-1}.txt", "a", encoding="utf-8") as f:
+                    f.write(text_10)
+                text_10 = ""
         except:
             print("Unexpected error:", sys.exc_info()[0])
+    with open(f"{dir_name}/{website_name}_from_{start}_to_{start+amount-1}.txt", "a", encoding="utf-8") as f:
+        f.write(text_10)
+    with open("./output.txt", "a") as f:
+        print(f"finish thread: {start}", file=f)
 
-def run_threads(thread_count, start, count, url, name):
+def run_threads(thread_count, start, count, url, name,tag=["p"], string=1):
 
     threads = []
     try:
-        for i in range(0, thread_count):
-            threads.append(Thread(target=write_text_to_file_from_url, args=(url, start + i * count, count, name,["p"])))
+        dir_name = f"./Data/download_pages/{name}/from_{start}_to_{start+thread_count*count-1}"
+        for i in range(0, thread_count-1):
+            threads.append(Thread(target=write_text_to_file_from_url, args=(url, start + i * count, count, name, dir_name, tag,string)))
 
         [t.start() for t in threads]
         [t.join() for t in threads]
 
     except:
         print ("Error: unable to start thread")
-  
+
+def reorg_files(my_dir = "", path_to_save = None, lan = None):
+    files = [f for f in listdir(my_dir)]
+    for my_file in files:
+        if isdir(join(my_dir,my_file)):
+            path = path_to_save
+            if path_to_save == None:
+                path = (my_dir, my_file + ".txt")
+            if my_file == "Hebrew" or my_file == "English":
+                reorg_files( join(my_dir, my_file), path_to_save = path, lan = my_file)
+            else:
+                reorg_files( join(my_dir, my_file), path_to_save = path)
+        elif isfile(join(my_dir,my_file)) and lan != None and path_to_save != None and my_file == "merged.txt":
+            source = open(join(my_dir, my_file),'r', encoding='utf-8') 
+            content = source.read()
+            if lan == "Hebrew":
+                content = read_html.remove_nikud(content)
+            source.close()
+
+            if not isdir(join(path_to_save[0], lan)):
+                mkdir(join(path_to_save[0], lan))
+            dest = open(join(path_to_save[0], lan, path_to_save[1]), 'a',encoding='utf-8')
+            dest.write(re.sub(r"\n\n+", "\n", content) + "\n\n")
+            dest.close()
+
 
 if __name__ == "__main__":
     start = datetime.datetime.now()
@@ -143,10 +179,11 @@ if __name__ == "__main__":
     #Tokenizer.tokenizer("this sets a minimum bound on the number of times a bigram needs to appear before it can be considered a collocation, in addition to log likelihood statistics", {}, 0)
     #Tokenizer.tokenizer("collocation", {}, 0)
     #parse_html_files()
-    #split_text_to_sentence("C:/Users/rzanzuri/Desktop/reference_project/Data/online_text/f_02017.txt")
+    #split_text_to_sentence("C:/Users/rzanzuri/Desktop/reference_project/Data/online_text/f_01682.txt")
     #write_text_to_file_from_url("https://news.walla.co.il/item/", 2600000, 10000, "walla")
-    #run_threads(1000,2600000, 100, "https://news.walla.co.il/item/", "walla")
-    run_threads(2, 100, 5, "http://www.hidush.co.il/hidush.asp?id=", "hidush")
+    #run_threads(100,2900000, 1000, "https://news.walla.co.il/item/", "walla")
+    #run_threads(thread_count=100, start=20000, count=100, url="http://www.hidush.co.il/hidush.asp?id=", name="hidush",tag=["span","p"],string=0)
+    reorg_files(my_dir = r"C:/Users/rzanzuri/Desktop/reference_project/Data/Sefaria-Export-master/txt")
 
 
     finish = datetime.datetime.now()
