@@ -1,9 +1,8 @@
-import os
-import zipfile
-import bz2
-import nltk
+import os, re, zipfile, bz2, nltk, unicodedata
 from nltk.tokenize.punkt import PunktSentenceTokenizer, PunktParameters
 from nltk.tokenize import word_tokenize
+from os import listdir,mkdir,rmdir
+from os.path import isfile, join,isdir
 
 def split_text_to_sentences(text, max_sen_len = -1):
     punkt_param = PunktParameters()
@@ -79,17 +78,38 @@ def get_sentences(path,dir_path = "") :
         print("ERROR: get_sentences")
         return None
 
-def get_temp(dir_path, dest_dir):
-    line = ""
-    for filename in os.listdir(dir_path): 
-        with open(dest_dir + filename + ".lettres", 'w', encoding = 'utf-8') as f:
-            text = get_text_file(filename,dir_path)    
-            for char in text:
-                if(char == "\t"):
-                    line += "| "
-                elif char == "\n":
-                    line += char
-                    f.write(line)
-                    line = ""
+def remove_english(text):
+    clean_text = ""
+    for line in text.splitlines():
+        words = line.split()
+        for i, word in enumerate(words):
+            if not re.match("[^a-zA-Z]*[a-zA-Z]", word):
+                clean_text += word
+                if i == len(words) - 1:
+                    clean_text += "\n"
                 else:
-                    line += char + " "
+                    clean_text += " "
+
+    return re.sub(r"[\[\(\{]\s*[\]\)\}]", "", clean_text)
+
+def remove_nikud(text):
+     normalized = unicodedata.normalize('NFKD', text)
+     no_nikkud =''.join([c for c in normalized if not unicodedata.combining(c)])
+     return no_nikkud
+
+def clean_hebrew_text(text):
+    clean_text = remove_english(text)
+    clean_text = remove_nikud(clean_text)
+    return clean_text
+
+def clean_hebrew_text_from_dir(my_dir):
+     files = [f for f in listdir(my_dir) if isfile(join(my_dir, f))]
+     for n_file in files:
+          f= open(join(my_dir, n_file),'r', encoding='utf-8') 
+          content = f.read()
+          no_nikkud = clean_hebrew_text(content)
+          f.close()
+          f = open(join(my_dir, "clean_" + n_file),'w',encoding='utf-8')
+          f.write(no_nikkud)
+          f.close()    
+                     
