@@ -52,6 +52,20 @@ def parse_html_to_text(html, html_part = ["p"], string=1):
                     filter_text.append(line.text)
      return (" ".join(filter_text)).replace("  ", " ")
 
+def remove_english(text):
+    clean_text = ""
+    for line in text.splitlines():
+        words = line.split()
+        for i, word in enumerate(words):
+            if not re.match("[^a-zA-Z]*[a-zA-Z]", word):
+                clean_text += word
+                if i == len(words) - 1:
+                    clean_text += "\n"
+                else:
+                    clean_text += " "
+
+    return re.sub(r"[\[\(\{]\s*[\]\)\}]", "", clean_text)
+         
 def remove_nikud_from_dir(my_dir):
      import unicodedata
      from os import listdir,mkdir,rmdir

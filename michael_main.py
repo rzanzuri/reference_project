@@ -7,6 +7,7 @@ from os.path import isfile, join,isdir
 import Python_lib.read_html as read_html
 from tika import parser
 import re
+from Python_lib.textHandler import clean_hebrew_text_from_dir
 
 def write_text_to_file_from_url(url, start, amount, website_name, html_part = ["p"]):
     for i in range(start, start + amount):
@@ -73,28 +74,11 @@ def download_maariv_pages():
         [t.start() for t in threads]
         [t.join() for t in threads]
 
-def clean_hebrew_text(text):
-    clean_text = ""
-    for word in text.split():
-        if not re.match("[^a-zA-Z]*[a-zA-Z]", word):
-            clean_text += word + " "
-    return clean_text
-
-
-
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
 
-    with open("./Data/text.txt",'r', encoding = 'utf-8' , errors = "ignore") as f:
-        text = f.read()
-        # text = "sad 66asd66asd66 asd66asd 6asd asd6 -sd *ada %&asd &asd# $$$ asdלחלasd asdשדג גשכahsdj asd65asdדשגasd65adfשכגasdשדג       [] [sad]  (שג) \n              \n\n (aaa  שדג\n\n    \n\n\n\n"
-        clean_text = clean_hebrew_text(text)
-        with open("./Data/clean_text.txt",'w', encoding = 'utf-8') as f2:
-            f2.write(clean_text)
-
-
-
+    clean_hebrew_text_from_dir("./Data/test/")
     # download_maariv_pages()
 
     # raw = parser.from_file('./Data/parasha-bereshit.pdf')
