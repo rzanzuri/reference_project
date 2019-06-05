@@ -1,5 +1,5 @@
 import re
-def read_file_to_tuple(file = "./Outputs/wiki_03_0-1000", key = "655360"):
+def read_file_to_tuple(file = "./Outputs/wiki_13_0-2000", key = "655360"):
     with open(file, encoding="utf-8") as f:
         all_sentences = []
         sentence = ""
