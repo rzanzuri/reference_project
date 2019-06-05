@@ -34,7 +34,7 @@ def clean_html_page(html):
      #strhtm = soup.prettify()   
      return text
 
-def parse_html_to_text(html, html_part = ["p"]):
+def parse_html_to_text(html, html_part = ["p"], string=1):
      all_text = []
      for element in html_part:
           try:
@@ -44,10 +44,35 @@ def parse_html_to_text(html, html_part = ["p"]):
 
      filter_text = []
      for line in all_text:
-          if not (line.string == None or len(line.string) < 10):
-               filter_text.append(line.string)
+          if string:
+               if not (line.string == None or len(line.string) < 10):
+                    filter_text.append(line.string)
+          else:
+               if not (line.text == None or len(line.text) < 10):
+                    filter_text.append(line.text)
      return (" ".join(filter_text)).replace("  ", " ")
 
+def remove_nikud_from_dir(my_dir):
+     import unicodedata
+     from os import listdir,mkdir,rmdir
+     from os.path import isfile, join,isdir
+
+     # nikkud-test.txt is the file you save your text in.
+     #my_dir = r"C:/Usersrzanzu/ri/Desktop/reference_project/Data/online_text"
+     files = [f for f in listdir(my_dir) if isfile(join(my_dir, f))]
+     for n_file in files:
+          f= open(join(my_dir, n_file),'r', encoding='utf-8') 
+          content = f.read()
+          no_nikkud = remove_nikud(content)
+          f.close()
+          f = open(join(my_dir, n_file),'w',encoding='utf-8')
+          f.write(no_nikkud)
+          f.close()
+def remove_nikud(text):
+     import unicodedata
+     normalized = unicodedata.normalize('NFKD', text)
+     no_nikkud =''.join([c for c in normalized if not unicodedata.combining(c)])
+     return no_nikkud
 
 #html = read_url_2_text("file:///C:/Users/rzanzuri/Desktop/reference_project/Data/Online/f_00711.html")
 #for i in range(2500000, 2600000):
