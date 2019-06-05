@@ -2,14 +2,36 @@ import os
 import zipfile
 import bz2
 import nltk
+from nltk.tokenize.punkt import PunktSentenceTokenizer, PunktParameters
+from nltk.tokenize import word_tokenize
 
+def split_text_to_sentences(text, max_sen_len = -1):
+    punkt_param = PunktParameters()
+    abbreviation = ['u.s.a', 'fig','dr', 'vs', 'mr', 'mrs', 'prof', 'inc','i.e', 'a.m', 'acct', 'approx', 'ave', 'b.a' , 'ba' , 'b.o.t', 'bros', 'cf', 'e.g', 'encl', 'etc', 'ft', 'gal', 'p.a', 'p.m', 'sq', 'st', 'blvd', 'cyn', 'ln', 'rd', 'p.s']
+    punkt_param.abbrev_types = set(abbreviation)
+    tokenizer = PunktSentenceTokenizer(punkt_param)
 
-def split_text_to_sentences(text):
     sentences = []
+
     for line in text.splitlines():
-        for sentence in nltk.sent_tokenize(line):
-            sentences.append(sentence)
+        for sentence in tokenizer.tokenize(line):
+            if(max_sen_len == -1):
+                sentences.append(sentence)
+            else:
+                for sent in get_sentences_by_max_length(sentence, max_sen_len):
+                    sentences.append(sent)
     return sentences 
+
+def get_sentences_by_max_length(sentence, max_sen_len = -1):
+    split_sentences = []
+    for i, word in enumerate(word_tokenize(sentence)):
+        if i % max_sen_len == 0:
+            split_sentences.append(word)  
+        else:
+            split_sentences[int(i/max_sen_len)] += " " + word
+
+    return split_sentences
+
 
 def get_len_of_longest_sentence(sentences):
     max_len = 0
@@ -33,17 +55,17 @@ def get_text_file(file, dir_path = ""):
             text = file.read()          
     return text
 
-def get_sentences_from_file(file, dir_path = ""):
+def get_sentences_from_file(file, dir_path = "", max_len_sent = -1):
     file_path = os.path.join(dir_path, file)
     text = get_text_file(file_path)
-    return split_text_to_sentences(text)
+    return split_text_to_sentences(text, max_len_sent)
 
 
-def get_sentences_from_dir(dir_path):
+def get_sentences_from_dir(dir_path, max_len_sent = -1):
     sentences = []
     for filename in os.listdir(dir_path): 
         text = get_text_file(filename,dir_path)       
-        sentences =  sentences + split_text_to_sentences(text)
+        sentences =  sentences + split_text_to_sentences(text, max_len_sent)
     if not sentences:
             return None
     return sentences

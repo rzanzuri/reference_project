@@ -13,7 +13,7 @@ def get_ner_with_spacy(sentence):
     result = []
     for entity in doc.ents:
         if(entity.label_ == "PERSON"):
-            print(entity.text)
+            # print(entity.text)
             result.append(entity.text)
     return ", ".join(result)
 
@@ -24,6 +24,32 @@ def get_ner_with_spacy(sentence):
     #     if element["category"] == "name":
     #         return element["name"],element["confidence_score"]
     # return None,None
+
+def is_ner_exsits(sentence):
+    ner_entities = get_ner_with_spacy(sentence)
+    if(len(ner_entities) > 0):
+        return 1
+    else:
+        return 0
+
+
+def refactor_sentence_by_entity(sentence, name):
+    subSent = sentence.split(name)
+    ner_sent = subSent[0]
+    sign = "name"
+
+    for i in range(1, len(subSent)):
+        ner_sent = ner_sent + sign + ' ' + name + ' ' + sign + subSent[i]
+
+    return ner_sent
+
+def get_ner_sentence (sentence):
+    output = paralleldots.ner(sentence)
+    if "entities" in output:
+        for element in output['entities']:
+            if (element["category"] == "name"):
+                return refactor_sentence_by_entity(sentence,element["name"])
+    return sentence
 
 
 if __name__ == "__main__":

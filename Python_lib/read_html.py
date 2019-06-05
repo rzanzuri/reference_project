@@ -1,5 +1,6 @@
 import urllib.request as urllib2
 from bs4 import BeautifulSoup
+from threading import Lock, RLock
 import re
 
 def read_url_2_text(url):
@@ -8,7 +9,6 @@ def read_url_2_text(url):
      except:
           print(url, "aren't found - 404")
           return ""
-     #file:///C:/Users/rzanzuri/Desktop/reference_project/Data/Online/f_00711.html
      html_doc = response.read()
 
      # Parse the html file
@@ -74,12 +74,25 @@ def remove_nikud(text):
      no_nikkud =''.join([c for c in normalized if not unicodedata.combining(c)])
      return no_nikkud
 
-#html = read_url_2_text("file:///C:/Users/rzanzuri/Desktop/reference_project/Data/Online/f_00711.html")
-#for i in range(2500000, 2600000):
-#     html = read_url_2_text(f"https://news.walla.co.il/item/{i}")
-#for i in range(500001, 600000):
-     #html = read_url_2_text(f"https://www.maariv.co.il/news/israel/Article-{i}")
-#     text = parse_html_to_text(html)
-#     if len(text) > 10:
-#          with open(f"./Data/download_pages/{i}.txt", "w", encoding="utf-8") as f:
-#               f.write(text)
+def parse_maariv_html_to_text(html):
+     title = str(html.title.string)
+
+     if title.find("ספורט 1") >= 0:
+          all_text = html.find_all('div', class_="article-inner-content")
+     else:
+          all_text = html.find_all('p')
+          all_text += html.find_all('div', class_="", id="")          
+
+     filter_text = []
+     for line in all_text:
+          if line.string is not None and len(line.string) >= 10:
+               filter_text.append(line.string)
+          elif line.text is not None and len(line.text) >= 10:
+               filter_text.append(line.text)
+     return (" ".join(filter_text)).replace("\n"," ").replace("\t", " ").replace("  ", " ")     
+
+# html = read_url_2_text("https://www.maariv.co.il/news/israel/Article-500001")
+# text = parse_maariv_html_to_text(html)
+
+# with open(f"./Data/download_pages/Article-500003.txt", "w", encoding="utf-8") as f:
+#      f.write(text)
