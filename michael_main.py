@@ -6,6 +6,7 @@ from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
 import Python_lib.read_html as read_html
 from tika import parser
+import re
 
 def write_text_to_file_from_url(url, start, amount, website_name, html_part = ["p"]):
     for i in range(start, start + amount):
@@ -56,9 +57,9 @@ def run_threads(thread_count, start, count, url, name):
   
 def download_maariv_pages():
     start_article = 500001
-    end_article = 500040
-    num_of_sites_in_file = 1
-    num_of_thread_in_parallel = 40
+    end_article = 702214
+    num_of_sites_in_file = 100
+    num_of_thread_in_parallel = 100
     article_index = start_article
 
     while article_index < end_article:
@@ -72,15 +73,34 @@ def download_maariv_pages():
         [t.start() for t in threads]
         [t.join() for t in threads]
 
+def clean_hebrew_text(text):
+    clean_text = ""
+    for word in text.split():
+        if not re.match("[^a-zA-Z]*[a-zA-Z]", word):
+            clean_text += word + " "
+    return clean_text
+
+
+
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
 
+    with open("./Data/text.txt",'r', encoding = 'utf-8' , errors = "ignore") as f:
+        text = f.read()
+        # text = "sad 66asd66asd66 asd66asd 6asd asd6 -sd *ada %&asd &asd# $$$ asdלחלasd asdשדג גשכahsdj asd65asdדשגasd65adfשכגasdשדג       [] [sad]  (שג) \n              \n\n (aaa  שדג\n\n    \n\n\n\n"
+        clean_text = clean_hebrew_text(text)
+        with open("./Data/clean_text.txt",'w', encoding = 'utf-8') as f2:
+            f2.write(clean_text)
+
+
+
     # download_maariv_pages()
-    raw = parser.from_file('./Data/parasha-bereshit.pdf')
-    text = raw['content']
-    with open("./Data/parasha-bereshit.txt", 'w', encoding="utf-8") as f:
-        f.write(text)
+
+    # raw = parser.from_file('./Data/parasha-bereshit.pdf')
+    # text = raw['content']
+    # with open("./Data/parasha-bereshit.txt", 'w', encoding="utf-8") as f:
+    #     f.write(text)
 
     finish = datetime.datetime.now()
     print("end:", finish)
