@@ -120,20 +120,3 @@ def clean_hebrew_text_from_dir(my_dir):
         finish = datetime.datetime.now()
         print("end:", finish, "file:", n_file)
         print("total:", finish - start)   
-                     
-def clean_hebrew_text_from_file(my_file):
-    for n_file in files:
-        start = datetime.datetime.now()
-        print("start:", start)
-
-        f= open(join(my_dir, n_file),'r', encoding='utf-8') 
-        content = f.read()
-        no_nikkud = clean_hebrew_text(content)
-        f.close()
-        f = open(join(my_dir, "clean_" + n_file),'w',encoding='utf-8')
-        f.write(no_nikkud)
-        f.close() 
-        
-        finish = datetime.datetime.now()
-        print("end:", finish, "file:", n_file)
-        print("total:", finish - start) 
