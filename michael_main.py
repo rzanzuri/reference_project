@@ -133,7 +133,7 @@ if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
     # dror_task()
-    clean_hebrew_text_from_dir("./Data/RabannyText/", "RabannyText.txt")
+    clean_hebrew_text_from_dir("./Data/Test/", "RabannyText.txt")
     # download_maariv_pages()
 
     # raw = parser.from_file('./Data/parasha-bereshit.pdf')
