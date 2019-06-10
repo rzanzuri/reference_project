@@ -52,8 +52,8 @@ stemmer = SnowballStemmer("english",)
 whitelist = set(list(wn.words()) + words.words())
 english_words = ""
 
-with open(r'./Data/EnglishWords.txt') as word_file:
-    english_words = set(word.strip().lower() for word in word_file)  
+#with open(r'./Data/EnglishWords.txt') as word_file:
+#    english_words = set(word.strip().lower() for word in word_file)  
 
 def stem_prefix(word, prefixes, roots):
     original_word = word
@@ -69,7 +69,7 @@ def porter_english_plus(word, prefixes=english_prefixes):
     return porter.stem(stem_prefix(word, prefixes, whitelist))
 
 def englishWords():
-    with open(r'./Data/EnglishWords.txt') as word_file:
+    with open(r'./Data/') as word_file:
         return set(word.strip().lower() for word in word_file)  
 
 

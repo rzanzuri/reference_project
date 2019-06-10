@@ -7,10 +7,10 @@ import _thread
 from threading import Thread
 import time
 import os
-#os.environ['http_proxy'] = 'http://proxy-chain.intel.com:911'
-#os.environ['HTTP_PROXY'] = 'http://proxy-chain.intel.com:911'
-#os.environ['https_proxy'] = 'https://proxy-chain.intel.com:912'
-#os.environ['HTTPS_PROXY'] = 'https://proxy-chain.intel.com:912'
+os.environ['http_proxy'] = 'http://proxy-chain.intel.com:911'
+os.environ['HTTP_PROXY'] = 'http://proxy-chain.intel.com:911'
+os.environ['https_proxy'] = 'https://proxy-chain.intel.com:912'
+os.environ['HTTPS_PROXY'] = 'https://proxy-chain.intel.com:912'
 
 from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
@@ -18,6 +18,7 @@ from os.path import isfile, join,isdir
 import Python_lib.Tokenizer as Tokenizer
 import Python_lib.Statistics_text as Statistics
 import Python_lib.read_html as read_html
+import Python_lib.textHandler as textHandler
 import Python_lib
 
 
@@ -169,6 +170,19 @@ def reorg_files(my_dir = "", path_to_save = None, lan = None):
             dest.write(re.sub(r"\n\n+", "\n", content) + "\n\n")
             dest.close()
 
+def run_threads_2(thread_count, start, count, url, name,tag=["p"], string=1):
+
+    threads = []
+    try:
+        dir_name = f"./Data/download_pages/{name}/from_{start}_to_{start+thread_count*count-1}"
+        for i in range(0, thread_count-1):
+            threads.append(Thread(target=write_text_to_file_from_url, args=(url, start + i * count, count, name, dir_name, tag,string)))
+
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+
+    except:
+        print ("Error: unable to start thread")
 
 if __name__ == "__main__":
     start = datetime.datetime.now()
@@ -181,10 +195,11 @@ if __name__ == "__main__":
     #parse_html_files()
     #split_text_to_sentence("C:/Users/rzanzuri/Desktop/reference_project/Data/online_text/f_01682.txt")
     #write_text_to_file_from_url("https://news.walla.co.il/item/", 2600000, 10000, "walla")
-    #run_threads(100,2900000, 1000, "https://news.walla.co.il/item/", "walla")
+    #run_threads(100,3000000, 1000, "https://news.walla.co.il/item/", "walla")
     #run_threads(thread_count=100, start=20000, count=100, url="http://www.hidush.co.il/hidush.asp?id=", name="hidush",tag=["span","p"],string=0)
-    reorg_files(my_dir = r"C:/Users/rzanzuri/Desktop/reference_project/Data/Sefaria-Export-master/txt")
-
+    #reorg_files(my_dir = r"C:/Users/rzanzuri/Desktop/reference_project/Data/Sefaria-Export-master/txt")
+    textHandler.clean_hebrew_text_from_dir(r"C:/Users/rzanzuri/Desktop/hebrew_data/wiki")
+    
 
     finish = datetime.datetime.now()
     print("end:", finish)

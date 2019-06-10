@@ -3,6 +3,7 @@ from nltk.tokenize.punkt import PunktSentenceTokenizer, PunktParameters
 from nltk.tokenize import word_tokenize
 from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
+import datetime
 
 def split_text_to_sentences(text, max_sen_len = -1):
     punkt_param = PunktParameters()
@@ -103,13 +104,36 @@ def clean_hebrew_text(text):
     return clean_text
 
 def clean_hebrew_text_from_dir(my_dir):
-     files = [f for f in listdir(my_dir) if isfile(join(my_dir, f))]
-     for n_file in files:
-          f= open(join(my_dir, n_file),'r', encoding='utf-8') 
-          content = f.read()
-          no_nikkud = clean_hebrew_text(content)
-          f.close()
-          f = open(join(my_dir, "clean_" + n_file),'w',encoding='utf-8')
-          f.write(no_nikkud)
-          f.close()    
+    files = [f for f in listdir(my_dir) if isfile(join(my_dir, f))]
+    for n_file in files:
+        start = datetime.datetime.now()
+        print("start:", start)
+
+        f= open(join(my_dir, n_file),'r', encoding='utf-8') 
+        content = f.read()
+        no_nikkud = clean_hebrew_text(content)
+        f.close()
+        f = open(join(my_dir, "clean_" + n_file),'w',encoding='utf-8')
+        f.write(no_nikkud)
+        f.close() 
+        
+        finish = datetime.datetime.now()
+        print("end:", finish, "file:", n_file)
+        print("total:", finish - start)   
                      
+def clean_hebrew_text_from_file(my_file):
+    for n_file in files:
+        start = datetime.datetime.now()
+        print("start:", start)
+
+        f= open(join(my_dir, n_file),'r', encoding='utf-8') 
+        content = f.read()
+        no_nikkud = clean_hebrew_text(content)
+        f.close()
+        f = open(join(my_dir, "clean_" + n_file),'w',encoding='utf-8')
+        f.write(no_nikkud)
+        f.close() 
+        
+        finish = datetime.datetime.now()
+        print("end:", finish, "file:", n_file)
+        print("total:", finish - start) 

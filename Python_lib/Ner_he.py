@@ -5,7 +5,7 @@ def read_file_to_tuple(file = "./Outputs/wiki_13_0-2000", key = "655360"):
         sentence = ""
         space1 = ""
         space2 = None
-        isNer = 0
+        isNer = 0`
         left = True # to know if we are in left "/' or right
         for line in f:
             if line == "" or line == "\n" or line == "\t":

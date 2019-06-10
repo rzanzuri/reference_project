@@ -3,6 +3,7 @@ from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
 import re
 import datetime
+import bz2
 
 
 start = datetime.datetime.now()
