@@ -1,3 +1,16 @@
+from keras.models import Sequential
+from keras import layers
+from keras.layers import Embedding, LSTM, Dense, Activation, Flatten, Bidirectional
+from keras.models import model_from_json
+import Python_lib.dataSets as dataSets
+import Python_lib.vectorsModel as vectorsModel
+import Python_lib.named_entity_recognotion as NER
+import Python_lib.textHandler as textHandler
+import numpy as np
+import multiprocessing
+import logging
+import gensim
+
 import datetime
 import sys
 from threading import Thread
@@ -8,6 +21,48 @@ import Python_lib.read_html as read_html
 from tika import parser
 import re
 from Python_lib.textHandler import clean_hebrew_text_from_dir
+
+def dror_task():
+    iters = 6
+    min_count = 60
+    vec_size = 300 
+    win_size = 20
+    workers = multiprocessing.cpu_count() 
+
+    #model setup
+    vec_model_root_path = "./VecModels"
+    curpus_path = "./Data/shuffled_clean_shut/"
+    vec_model = vectorsModel.get_model_vectors(curpus_path, vec_model_root_path, win_size, iters, min_count, vec_size, workers)
+    write_dict(vec_model, vec_model.wv.vocab, curpus_path + "shuffled_clean_shut_vocab.txt")
+    find_similar(curpus_path, vec_model)
+
+def write_dict(vec_model, vocab, file_name):
+    with open(file_name, 'w', encoding = 'utf-8') as f:
+        for word in vocab:
+            f.write(word +  "\n")
+            for val in vec_model.wv[word]:
+                f.write(str(val) + " ")
+            f.write("\n")
+
+def find_similar(curpus_path, vec_model):
+    special_words = []
+    with open("./Data/shuffled_clean_shut/special words.txt", 'r', encoding = "utf-8") as f:
+        for line in f.readlines():
+            special_words.append(line.strip("\n"))
+    
+    for word in special_words:
+        file_name = curpus_path + "similarity/" + word.replace("\"","\'\'") + "_most_similar.txt"
+        with open(file_name, 'w', encoding = 'utf-8') as f:
+            if word in vec_model.wv.vocab:
+                most_similar = vec_model.most_similar(positive=[word], topn = 100)
+                for sim_line in most_similar:
+                    if sim_line[0] in vec_model.wv.vocab:
+                        f.write(sim_line[0] + "\n" + str(sim_line[1]) + "\n")
+                        for val in vec_model.wv[word]:
+                            f.write(str(val) + " ")
+                        f.write("\n")
+                        
+
 
 def write_text_to_file_from_url(url, start, amount, website_name, html_part = ["p"]):
     for i in range(start, start + amount):
@@ -57,8 +112,8 @@ def run_threads(thread_count, start, count, url, name):
         print ("Error: unable to start thread")
   
 def download_maariv_pages():
-    start_article = 500001
-    end_article = 702214
+    start_article = 670001
+    end_article = 702604
     num_of_sites_in_file = 100
     num_of_thread_in_parallel = 100
     article_index = start_article
@@ -77,8 +132,8 @@ def download_maariv_pages():
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
-
-    clean_hebrew_text_from_dir("./Data/test/")
+    # dror_task()
+    clean_hebrew_text_from_dir("./Data/RabannyText/", "RabannyText.txt")
     # download_maariv_pages()
 
     # raw = parser.from_file('./Data/parasha-bereshit.pdf')
@@ -89,11 +144,6 @@ if __name__ == "__main__":
     finish = datetime.datetime.now()
     print("end:", finish)
     print("total:", finish - start)
-
-
-
-
-
 
 # import urllib.request as urllib2
 # from html.parser import HTMLParser

@@ -4,7 +4,7 @@ tagger
 online*
 easyfirst
 download_pages
-*cpython*
+.*cpython.*
 VecModels
 Data
 .vscode

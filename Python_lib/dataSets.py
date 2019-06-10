@@ -172,7 +172,7 @@ def get_sentences_and_answers(src_path, get_answer_func = None, save = 1 , dest_
                 return get_sentences_and_answers_from_existing_file(ans_file_path, limit)
         return get_sentences_and_answers_by_dir_path(src_path, get_answer_func, save, dest_dir, max_len_sent, limit)
     else:
-        print("Error!")
+        print("Error! get_sentences_and_answers")
         return None, None
 
 def is_int(str):
