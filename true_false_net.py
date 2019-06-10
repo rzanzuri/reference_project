@@ -26,22 +26,13 @@ max_len_sent = 100
 #model setup
 vec_model_root_path = "./VecModels"
 # curpus_path = "./Data/Wiki_en/"
-<<<<<<< HEAD
-curpus_path = "./Data/wiki_en/"
-# curpus_path = "./Data/shuffled_clean_shut/"
-=======
 # curpus_path = "./Data/sentiment_analysis/"
 curpus_path = "./Data/shuffled_clean_shut/"
->>>>>>> d9f9517582f3de6665a23b0c7aab0403e9fd82e2
 # vec_model_curpus_path =  "./Data/sentiment_analysis/"
 # vec_model = vectorsModel.temp_for_dror(vec_model_root_path, win_size, iters, min_count, vec_size, workers)
 # print(vec_model.wv['שאלה'])
 
-<<<<<<< HEAD
-#vec_model = gensim.models.KeyedVectors.load_word2vec_format('./VecModels/GoogleNews-vectors-negative300.bin', binary=True)  
-=======
 # vec_model = gensim.models.KeyedVectors.load_word2vec_format('./VecModels/GoogleNews-vectors-negative300.bin', binary=True)  
->>>>>>> d9f9517582f3de6665a23b0c7aab0403e9fd82e2
 vec_model = vectorsModel.get_model_vectors(curpus_path, vec_model_root_path, win_size, iters, min_count, vec_size, workers)
 sentences, answers = dataSets.get_sentences_and_answers(curpus_path, NER.is_ner_exsits, max_len_sent = max_len_sent, limit= limit)
 
