@@ -102,14 +102,12 @@ def clean_hebrew_text(text):
     clean_text = remove_nikud(clean_text)
     return clean_text
 
-def clean_hebrew_text_from_dir(my_dir):
+def clean_hebrew_text_from_dir(my_dir, file_name):
      files = [f for f in listdir(my_dir) if isfile(join(my_dir, f))]
-     for n_file in files:
-          f= open(join(my_dir, n_file),'r', encoding='utf-8') 
-          content = f.read()
-          no_nikkud = clean_hebrew_text(content)
-          f.close()
-          f = open(join(my_dir, "clean_" + n_file),'w',encoding='utf-8')
-          f.write(no_nikkud)
-          f.close()    
+     with open(join(my_dir, file_name),'w', encoding ='utf-8') as dest_file:
+        for n_file in files:
+            with open(join(my_dir, n_file),'r', encoding='utf-8') as f:
+                content = f.read()
+                no_nikkud = clean_hebrew_text(content)
+                dest_file.write(no_nikkud)
                      
