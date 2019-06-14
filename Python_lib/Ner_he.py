@@ -1,11 +1,11 @@
 import re
-def read_file_to_tuple(file = "./Outputs/wiki_13_0-2000", key = "655360"):
+def read_file_to_tuple(file = "./Outputs/HebrewText_3000_Sen_NER.txt", key = "655360"):
     with open(file, encoding="utf-8") as f:
         all_sentences = []
         sentence = ""
         space1 = ""
         space2 = None
-        isNer = 0`
+        isNer = 0
         left = True # to know if we are in left "/' or right
         for line in f:
             if line == "" or line == "\n" or line == "\t":
@@ -44,7 +44,7 @@ def read_file_to_tuple(file = "./Outputs/wiki_13_0-2000", key = "655360"):
             if (space1 == None) and (not sentence == ""):
                 space1 = " "
             if key_word == key:
-                #word = "<" + word + ">"
+                word = "<" + word + ">"
                 isNer = 1
             if space2 == None:
                 sentence += (space1 + word)
@@ -56,7 +56,7 @@ def read_file_to_tuple(file = "./Outputs/wiki_13_0-2000", key = "655360"):
 
     for sentence in all_sentences:
         print(sentence)
-    with open("./Outputs/stam.txt","w", encoding="utf-8") as f:
+    with open("./Outputs/HebrewText_3000_Sen_NER_final.txt.txt","w", encoding="utf-8") as f:
         for sentence in all_sentences:
             f.write(sentence + "\n")
 
