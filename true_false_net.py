@@ -9,6 +9,7 @@ import Python_lib.textHandler as textHandler
 import numpy as np
 import multiprocessing
 import logging
+import datetime
 
 import gensim
 
@@ -27,7 +28,10 @@ max_len_sent = 100
 vec_model_root_path = "./VecModels"
 # curpus_path = "./Data/Wiki_en/"
 # curpus_path = "./Data/sentiment_analysis/"
-curpus_path = "./Data/shuffled_clean_shut/"
+# curpus_path = "./Data/shuffled_clean_shut/"
+# curpus_path = "./Data/RabannyText/"
+curpus_path = "./Data/HebrewText/"
+
 # vec_model_curpus_path =  "./Data/sentiment_analysis/"
 # vec_model = vectorsModel.temp_for_dror(vec_model_root_path, win_size, iters, min_count, vec_size, workers)
 # print(vec_model.wv['שאלה'])
@@ -53,9 +57,9 @@ model.add(layers.Embedding(vocab_size, emdedding_size,
                            weights=[pretrained_weights], 
                            input_length=maxlen, 
                            trainable=True))
-# model.add(layers.GlobalMaxPool1D())
+model.add(layers.GlobalMaxPool1D())
 # model.add(LSTM(units=emdedding_size))
-model.add(Bidirectional(LSTM(units=emdedding_size)))
+# model.add(Bidirectional(LSTM(units=emdedding_size)))
 
 model.add(layers.Dense(10, activation='relu'))
 model.add(layers.Dense(1, activation='sigmoid'))

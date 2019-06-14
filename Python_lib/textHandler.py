@@ -3,11 +3,7 @@ from nltk.tokenize.punkt import PunktSentenceTokenizer, PunktParameters
 from nltk.tokenize import word_tokenize
 from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
-<<<<<<< HEAD
-import datetime
-=======
 from threading import Thread
->>>>>>> 1e0c6e1a60354666a5105061f2db76e17049ee55
 
 def split_text_to_sentences(text, max_sen_len = -1):
     punkt_param = PunktParameters()
@@ -109,13 +105,13 @@ def clean_hebrew_text(text):
 
 def clean_hebrew_text_from_dir(my_dir, file_name):
     files = [f for f in listdir(my_dir) if isfile(join(my_dir, f))]
-    threads = []
+    # threads = []
 
-    for n_file in files:
-        threads.append(Thread(target=clean_hebrew_file, args=(my_dir, n_file)))
+    # for n_file in files:
+    #     threads.append(Thread(target=clean_hebrew_file, args=(my_dir, n_file)))
 
-    [t.start() for t in threads]
-    [t.join() for t in threads]
+    # [t.start() for t in threads]
+    # [t.join() for t in threads]
 
     with open(join(my_dir, file_name),'w', encoding ='utf-8') as dest_file: 
         for n_file in files:
