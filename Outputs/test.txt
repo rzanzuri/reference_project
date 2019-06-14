@@ -1,0 +1,683 @@
+הרכבת	2168848384
+הממשלה	1095106564
+
+אני
+	Lemma: הוא
+	POS: pronoun
+	POS type: personal
+	Gender: masculine and feminine
+	Number: singular
+	Person: 1
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+אוהב
+	Lemma: אהב
+	POS: participle
+	POS type: verb
+	Gender: masculine
+	Number: singular
+	Person: any
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+לאכול
+	Lemma: אכל
+	POS: verb
+	POS type: unspecified
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: infinitive
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+אוכל
+	Lemma: אוכל
+	POS: noun
+	POS type: unspecified
+	Gender: masculine
+	Number: singular
+	Person: unspecified
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+.
+	Lemma: .
+	POS: punctuation
+	POS type: dot
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+
+
+----------------------------------------------------------------------
+
+הלכתי
+	Lemma: הלך
+	POS: verb
+	POS type: unspecified
+	Gender: masculine and feminine
+	Number: singular
+	Person: 1
+	Status: unspecified
+	Tense: past
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+אתמול
+	Lemma: אתמול
+	POS: adverb
+	POS type: unspecified
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+ברחוב
+	Lemma: ב^רחוב
+	POS: noun
+	POS type: unspecified
+	Gender: masculine
+	Number: singular
+	Person: unspecified
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: true
+	Prefixes: ב  preposition 
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+ונתקעתי
+	Lemma: ו^נתקע
+	POS: verb
+	POS type: unspecified
+	Gender: masculine and feminine
+	Number: singular
+	Person: 1
+	Status: unspecified
+	Tense: past
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: ו  conjunction 
+	Suffix: None
+	NER: O
+	Chunk: O
+בעמוד
+	Lemma: ב^עמוד
+	POS: noun
+	POS type: unspecified
+	Gender: masculine
+	Number: singular
+	Person: unspecified
+	Status: construct
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: ב  preposition 
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+חשמל
+	Lemma: חשמל
+	POS: noun
+	POS type: unspecified
+	Gender: masculine
+	Number: singular
+	Person: unspecified
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: I-NP
+.
+	Lemma: .
+	POS: punctuation
+	POS type: dot
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+
+
+----------------------------------------------------------------------
+
+העמוד
+	Lemma: עמוד
+	POS: noun
+	POS type: unspecified
+	Gender: masculine
+	Number: singular
+	Person: unspecified
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: true
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+החמישי
+	Lemma: ORD5
+	POS: numeral
+	POS type: numeral ordinal
+	Gender: masculine
+	Number: singular
+	Person: unspecified
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: true
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: I-NP
+בספר
+	Lemma: ב^ספר
+	POS: noun
+	POS type: unspecified
+	Gender: masculine
+	Number: singular
+	Person: unspecified
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: true
+	Prefixes: ב  preposition 
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+הוא
+	Lemma: הוא
+	POS: pronoun
+	POS type: personal
+	Gender: masculine
+	Number: singular
+	Person: 3
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+העמוד
+	Lemma: עמוד
+	POS: noun
+	POS type: unspecified
+	Gender: masculine
+	Number: singular
+	Person: unspecified
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: true
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+שאני
+	Lemma: ש^הוא
+	POS: pronoun
+	POS type: personal
+	Gender: masculine and feminine
+	Number: singular
+	Person: 1
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: ש  relativizer/subordinatingConjunction 
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+הכי
+	Lemma: הכי
+	POS: adverb
+	POS type: unspecified
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+אוהב
+	Lemma: אהב
+	POS: participle
+	POS type: verb
+	Gender: masculine
+	Number: singular
+	Person: any
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+.
+	Lemma: .
+	POS: punctuation
+	POS type: dot
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+
+
+----------------------------------------------------------------------
+
+אני
+	Lemma: הוא
+	POS: pronoun
+	POS type: personal
+	Gender: masculine and feminine
+	Number: singular
+	Person: 1
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+ויעל
+	Lemma: ו^יעל
+	POS: properName
+	POS type: unspecified
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: ו  conjunction 
+	Suffix: None
+	NER: I_PERS
+	Chunk: B-NP
+אוהבות
+	Lemma: אהב
+	POS: participle
+	POS type: verb
+	Gender: feminine
+	Number: plural
+	Person: any
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+לעשות
+	Lemma: עשה
+	POS: verb
+	POS type: unspecified
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: infinitive
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+דברים
+	Lemma: דבר
+	POS: noun
+	POS type: unspecified
+	Gender: masculine
+	Number: plural
+	Person: unspecified
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+ביחד
+	Lemma: ביחד
+	POS: adverb
+	POS type: unspecified
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: I-NP
+,
+	Lemma: ,
+	POS: punctuation
+	POS type: comma
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+למשל
+	Lemma: למשל
+	POS: conjunction
+	POS type: coordinating
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+,
+	Lemma: ,
+	POS: punctuation
+	POS type: comma
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+שתינו
+	Lemma: שתה
+	POS: verb
+	POS type: unspecified
+	Gender: masculine and feminine
+	Number: plural
+	Person: 1
+	Status: unspecified
+	Tense: past
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+אוהבות
+	Lemma: אהב
+	POS: participle
+	POS type: verb
+	Gender: feminine
+	Number: plural
+	Person: any
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+לשחות
+	Lemma: שחה
+	POS: verb
+	POS type: unspecified
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: infinitive
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+בבריכה
+	Lemma: ב^בריכה
+	POS: noun
+	POS type: unspecified
+	Gender: feminine
+	Number: singular
+	Person: unspecified
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: true
+	Prefixes: ב  preposition 
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+.
+	Lemma: .
+	POS: punctuation
+	POS type: dot
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+
+
+----------------------------------------------------------------------
+
+יהודית
+	Lemma: יהודי
+	POS: properName
+	POS type: unspecified
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: I_PERS
+	Chunk: B-NP
+ואני
+	Lemma: ו^הוא
+	POS: pronoun
+	POS type: personal
+	Gender: masculine and feminine
+	Number: singular
+	Person: 1
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: ו  conjunction 
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+שתינו
+	Lemma: שתה
+	POS: verb
+	POS type: unspecified
+	Gender: masculine and feminine
+	Number: plural
+	Person: 1
+	Status: unspecified
+	Tense: past
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+אתמול
+	Lemma: אתמול
+	POS: adverb
+	POS type: unspecified
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+בקבוק
+	Lemma: בקבוק
+	POS: noun
+	POS type: unspecified
+	Gender: masculine
+	Number: singular
+	Person: unspecified
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: B-NP
+שלם
+	Lemma: שלם
+	POS: adjective
+	POS type: unspecified
+	Gender: masculine
+	Number: singular
+	Person: unspecified
+	Status: absolute
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: I-NP
+של
+	Lemma: של
+	POS: preposition
+	POS type: unspecified
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: I-NP
+קוניאק
+	Lemma: קוניאק
+	POS: properName
+	POS type: unspecified
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: I_PERS
+	Chunk: I-NP
+.
+	Lemma: .
+	POS: punctuation
+	POS type: dot
+	Gender: unspecified
+	Number: unspecified
+	Person: unspecified
+	Status: unspecified
+	Tense: unspecified
+	Polarity: unspecified
+	Definiteness: false
+	Prefixes: None
+	Suffix: None
+	NER: O
+	Chunk: O
+
+
+----------------------------------------------------------------------
+

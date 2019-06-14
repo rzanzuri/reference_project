@@ -3,11 +3,7 @@ from nltk.tokenize.punkt import PunktSentenceTokenizer, PunktParameters
 from nltk.tokenize import word_tokenize
 from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
-<<<<<<< HEAD
-import datetime
-=======
 from threading import Thread
->>>>>>> 1e0c6e1a60354666a5105061f2db76e17049ee55
 
 def split_text_to_sentences(text, max_sen_len = -1):
     punkt_param = PunktParameters()

@@ -5,8 +5,10 @@ import datetime
 import sys
 import _thread
 from threading import Thread
+import subprocess
 import time
 import os
+import asyncio
 os.environ['http_proxy'] = 'http://proxy-chain.intel.com:911'
 os.environ['HTTP_PROXY'] = 'http://proxy-chain.intel.com:911'
 os.environ['https_proxy'] = 'https://proxy-chain.intel.com:912'
@@ -23,6 +25,7 @@ import Python_lib
 
 
 source_dir = r"./Data/"
+mutex = asyncio.Lock()
 
 def tokenizer_main():
     token_words = {}
@@ -169,20 +172,97 @@ def reorg_files(my_dir = "", path_to_save = None, lan = None):
             dest = open(join(path_to_save[0], lan, path_to_save[1]), 'a',encoding='utf-8')
             dest.write(re.sub(r"\n\n+", "\n", content) + "\n\n")
             dest.close()
+def build_stem_text_that_contain_all_words(my_file):
+    all_words = set()
+    content = []
+    persent = 0
+    #thread_count = 100
+    #with open(my_file.replace(".txt", "2_dict_full.txt"), encoding = "utf-8") as dic:
+    #       words = dic.read().split("\n")
+    #all_words.update(words)
+    # print("finish to read the source and create dict.\n", datetime.datetime.now())
 
-def run_threads_2(thread_count, start, count, url, name,tag=["p"], string=1):
+    # with open(my_file, encoding="utf-8") as f:
+    #    lines = f.read().split(".")
+    #    lines_per_task = int(len(lines) / thread_count)
+    #    threads = []
+    #    try:
+    #        for i in range(thread_count):
+    #            if i == 99:
+    #                threads.append(Thread(target=aaa, args=(my_file.replace(".txt", f"_stem_{i}.txt"),lines[lines_per_task*i : ] , all_words, i)))
+    #            else:
+    #                threads.append(Thread(target=aaa, args=(my_file.replace(".txt", f"_stem_{i}.txt"),lines[lines_per_task*i : lines_per_task * (i+1)] , all_words, i)))
 
+    #        [t.start() for t in threads]
+    #        [t.join() for t in threads]
+    #    except:
+    #        print ("Error: unable to start thread")
+    out = open(my_file.replace(".txt", "_stem2.txt"),"w", encoding="utf-8")
+    with open(my_file, encoding="utf-8") as f:
+        lines = f.read().split(".")
+        for i,line in enumerate(lines):
+            added_line = 0
+            words = re.findall(r'\d+[.,]\d+\([.,]\d\)*|\w+\.\w+|\w+|\S',line + ".")
+            for word in words:
+                if word not in all_words:
+                    all_words.update([word])
+                    if added_line == 0:
+                        content.append(line)
+                        added_line = 1
+                        print(line, file = out)
+                        if persent < int(i*100/len(lines)): 
+                            persent = int(i*100/len(lines))
+                            print("words count is:", len(all_words))
+                            print(f"completed {int(i*100/len(lines))} %, total lines :", len(all_words))
+    out.close()
+
+def run_in_parallel_go_command(threads_count):
     threads = []
+    base = r"C:/Users/rzanzuri/Desktop/reference_project/"
     try:
-        dir_name = f"./Data/download_pages/{name}/from_{start}_to_{start+thread_count*count-1}"
-        for i in range(0, thread_count-1):
-            threads.append(Thread(target=write_text_to_file_from_url, args=(url, start + i * count, count, name, dir_name, tag,string)))
+        for i in range(threads_count):
+            #threads.append(Thread(target=run_thread, args=(f"full_hebrew_stem_{i}", base + r"Data/hebrew_data/in", base + r"Data/hebrew_data/out" , base + r"yap/src/yap" )))
+            run_thread(f"full_hebrew_stem_{i}", base + r"Data/hebrew_data/in", base + r"Data/hebrew_data/out" , base + r"yap/src/yap" )
 
         [t.start() for t in threads]
         [t.join() for t in threads]
-
     except:
-        print ("Error: unable to start thread")
+        print ("Error:", sys.exc_info())
+
+def run_thread(file_name, in_path, out_path, yap_path):
+    print("run_thread.")
+    yap_command = join(yap_path,"yap.exe")
+    raw = " -raw " + join(in_path, file_name + ".txt")
+    out = " -out " + join(out_path, file_name + ".lattice")
+    inn = " -in " + join(out_path, file_name + ".lattice")
+    os = " -os " + join(out_path, file_name + ".segmentation")
+    om = " -om " + join(out_path, file_name + ".mapping")
+    oc = " -oc " + join(out_path, file_name + ".conll")
+
+    subprocess.run(yap_command + " hebma" + raw + out)
+    subprocess.run(yap_command + " joint" + inn + os+ om + oc )
+    os.remove(join(out_path, file_name + ".lattice"))
+
+
+def split_file(my_file, to_size):
+    with open(my_file, encoding = "utf-8") as f:
+        lines = f.readlines()
+        num_file = 0
+        split_file = open(my_file.replace(".txt", f"_{num_file}.txt"), "w", encoding = "utf-8")
+        for line in lines:
+            if int(os.path.getsize(split_file.name)) >= to_size:
+                print("\n", sep="\n" ,file = split_file)
+                split_file.close()
+                num_file += 1
+                #if num_file > 5:
+                #    exit()
+                split_file = open(my_file.replace(".txt", f"_{num_file}.txt"), "w", encoding = "utf-8")
+            else:
+                words = re.findall(r'\d+[.,]\d+\([.,]\d\)*|\w+[\"\'\.]\w+|\w+|\S',line + ".")
+                print(*words, sep="\n" ,file = split_file)
+        print("\n\n", sep="\n" ,file = split_file)
+        split_file.close()
+
 
 if __name__ == "__main__":
     start = datetime.datetime.now()
@@ -198,8 +278,10 @@ if __name__ == "__main__":
     #run_threads(100,3000000, 1000, "https://news.walla.co.il/item/", "walla")
     #run_threads(thread_count=100, start=20000, count=100, url="http://www.hidush.co.il/hidush.asp?id=", name="hidush",tag=["span","p"],string=0)
     #reorg_files(my_dir = r"C:/Users/rzanzuri/Desktop/reference_project/Data/Sefaria-Export-master/txt")
-    textHandler.clean_hebrew_text_from_dir(r"C:/Users/rzanzuri/Desktop/hebrew_data/wiki")
-    
+    #textHandler.clean_hebrew_text_from_dir(r"C:/Users/rzanzuri/Desktop/hebrew_data","full_hebrew.txt")
+    #build_stem_text_that_contain_all_words(r"C:/Users/rzanzuri/Desktop/hebrew_data/full_hebrew.txt")
+    #split_file(r"C:/Users/rzanzuri/Desktop/reference_project/Data/hebrew_data/full_hebrew_stem.txt", 3*1024*1024)
+    run_in_parallel_go_command(10)
 
     finish = datetime.datetime.now()
     print("end:", finish)
