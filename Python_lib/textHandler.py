@@ -105,13 +105,13 @@ def clean_hebrew_text(text):
 
 def clean_hebrew_text_from_dir(my_dir, file_name):
     files = [f for f in listdir(my_dir) if isfile(join(my_dir, f))]
-    threads = []
+    # threads = []
 
-    for n_file in files:
-        threads.append(Thread(target=clean_hebrew_file, args=(my_dir, n_file)))
+    # for n_file in files:
+    #     threads.append(Thread(target=clean_hebrew_file, args=(my_dir, n_file)))
 
-    [t.start() for t in threads]
-    [t.join() for t in threads]
+    # [t.start() for t in threads]
+    # [t.join() for t in threads]
 
     with open(join(my_dir, file_name),'w', encoding ='utf-8') as dest_file: 
         for n_file in files:

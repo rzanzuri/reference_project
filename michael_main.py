@@ -1,7 +1,3 @@
-from keras.models import Sequential
-from keras import layers
-from keras.layers import Embedding, LSTM, Dense, Activation, Flatten, Bidirectional
-from keras.models import model_from_json
 import Python_lib.dataSets as dataSets
 import Python_lib.vectorsModel as vectorsModel
 import Python_lib.named_entity_recognotion as NER
@@ -10,6 +6,7 @@ import numpy as np
 import multiprocessing
 import logging
 import gensim
+import random
 
 import datetime
 import sys
@@ -23,6 +20,10 @@ import re
 from Python_lib.textHandler import clean_hebrew_text_from_dir
 
 def dror_task():
+    from keras.models import Sequential
+    from keras import layers
+    from keras.layers import Embedding, LSTM, Dense, Activation, Flatten, Bidirectional
+    from keras.models import model_from_json    
     iters = 6
     min_count = 60
     vec_size = 300 
@@ -111,6 +112,22 @@ def run_threads(thread_count, start, count, url, name):
     except:
         print ("Error: unable to start thread")
   
+
+def create_vec_model():
+    from keras.models import Sequential
+    from keras import layers
+    from keras.layers import Embedding, LSTM, Dense, Activation, Flatten, Bidirectional
+    from keras.models import model_from_json
+    iters = 50
+    min_count = 20
+    vec_size = 300 
+    win_size = 10
+    workers = multiprocessing.cpu_count() 
+    vec_model_root_path = "./VecModels"
+    curpus_path = "./Data/HebrewText/"  
+
+    vec_model = vectorsModel.get_model_vectors(curpus_path, vec_model_root_path, win_size, iters, min_count, vec_size, workers)
+
 def download_maariv_pages():
     start_article = 670001
     end_article = 702604
@@ -129,11 +146,58 @@ def download_maariv_pages():
         [t.start() for t in threads]
         [t.join() for t in threads]
 
+def write_n_sentences(amount, src_file , dest_file):
+    i = 0
+    sentences = []
+    with open(src_file,'r', encoding = 'utf-8') as f:
+        lines = f.readlines()
+    
+    for j, line in enumerate(lines):
+        for sent in line.split('.'):
+            if len(sent.split()) > 4:
+                sentences.append(sent.lstrip().rstrip() + ".")
+
+    with open(dest_file,'w' , encoding = 'utf-8') as f:
+        while i < amount:
+            idx = random.randint(0,len(sentences) -1)
+            f.write(sentences[idx] + "\n")
+            sentences.pop(idx)
+            i+=1    
+
+def create_rand_sents():
+    t1  = Thread(target=write_n_sentences, args=(3000,"./Data/RabannyText/RabannyText.txt","./Data/RabannyText/RabannyText_3000_Sen.txt"))
+    t2  = Thread(target=write_n_sentences, args=(3000,"./Data/HebrewText/HebrewText.txt","./Data/HebrewText/HebrewText_3000_Sen.txt"))
+    
+    t1.start()
+    t2.start()
+
+    t1.join()
+    t2.join()
+
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
+    base_path = "C:\\hebrewNER-1.0.1-Win\\bin\\"
+    with open("./Data/HebrewText/HebrewText_3000_Sen.txt",'r',encoding='utf-8') as f:
+        text = f.readlines()
+
+    with open("./Data/HebrewText/HebrewText.ans",'w',encoding='utf-8') as ans_file:
+        for i, sent in enumerate(text):
+            file_name = "testFiles\\" + str(i) + ".maxent"
+            with open(base_path + file_name,'r') as f:
+                line = f.read()
+                if "PERSON" in line or "LOCATION" in line or "ORGANIZATION" in line:
+                    ans  = "1"
+                else:
+                    ans = "0"
+            ans_file.write(sent + ans + "\n")
+        
+    
+    
+    # create_rand_sents()    
+    # create_vec_model()
     # dror_task()
-    clean_hebrew_text_from_dir("./Data/Test/", "RabannyText.txt")
+    # clean_hebrew_text_from_dir("./Data/RabannyText/", "RabannyText.txt")
     # download_maariv_pages()
 
     # raw = parser.from_file('./Data/parasha-bereshit.pdf')
