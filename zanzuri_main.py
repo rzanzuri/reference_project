@@ -217,15 +217,16 @@ def build_stem_text_that_contain_all_words(my_file):
     out.close()
 
 def run_in_parallel_go_command(threads_count):
-    threads = []
+    #threads = []
     base = r"C:/Users/rzanzuri/Desktop/reference_project/"
     try:
         for i in range(threads_count):
             #threads.append(Thread(target=run_thread, args=(f"full_hebrew_stem_{i}", base + r"Data/hebrew_data/in", base + r"Data/hebrew_data/out" , base + r"yap/src/yap" )))
             run_thread(f"full_hebrew_stem_{i}", base + r"Data/hebrew_data/in", base + r"Data/hebrew_data/out" , base + r"yap/src/yap" )
-
-        [t.start() for t in threads]
-        [t.join() for t in threads]
+            #threads.append(Thread(target=run_java, args=(f"full_hebrew_stem_{i}","")))
+            #run_java(f"full_hebrew_stem_{i}","")
+        #[t.start() for t in threads]
+        #[t.join() for t in threads]
     except:
         print ("Error:", sys.exc_info())
 
@@ -235,20 +236,29 @@ def run_thread(file_name, in_path, out_path, yap_path):
     raw = " -raw " + join(in_path, file_name + ".txt")
     out = " -out " + join(out_path, file_name + ".lattice")
     inn = " -in " + join(out_path, file_name + ".lattice")
-    os = " -os " + join(out_path, file_name + ".segmentation")
+    osr = " -os " + join(out_path, file_name + ".segmentation")
     om = " -om " + join(out_path, file_name + ".mapping")
     oc = " -oc " + join(out_path, file_name + ".conll")
 
     subprocess.run(yap_command + " hebma" + raw + out)
-    subprocess.run(yap_command + " joint" + inn + os+ om + oc )
+    subprocess.run(yap_command + " joint" + inn + osr + om + oc )
     os.remove(join(out_path, file_name + ".lattice"))
 
+def run_java(my_file,sss):
+    base = r"C:\Users\rzanzuri\Desktop\reference_project"
+    tagger = join(base, "Tagger\\")
+    command = f"java -Xmx2G -XX:MaxPermSize=256m -cp trove-2.0.2.jar;{tagger}morphAnalyzer.jar;{tagger}opennlp.jar;{tagger}gnu.jar;{tagger}chunker.jar;{tagger}splitsvm.jar;{tagger}duck1.jar;{tagger}tagger.jar;. NewDemo {tagger} "
+    in_file = join(base, r"Data\hebrew_data\in_adler2", my_file + ".txt")
+    out = join(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\out2", my_file + "_adler.txt")
+    subprocess.run(command + " " + in_file + " " + out )
+    print(command + " " + in_file + " " + out)
 
-def split_file(my_file, to_size):
-    with open(my_file, encoding = "utf-8") as f:
+
+def split_file(my_dir, my_file, to_size):
+    with open(join(my_dir, my_file), encoding = "utf-8") as f:
         lines = f.readlines()
         num_file = 0
-        split_file = open(my_file.replace(".txt", f"_{num_file}.txt"), "w", encoding = "utf-8")
+        split_file = open(join(my_dir, "in", my_file.replace(".txt", f"_{num_file}.txt")), "w", encoding = "utf-8")
         for line in lines:
             if int(os.path.getsize(split_file.name)) >= to_size:
                 print("\n", sep="\n" ,file = split_file)
@@ -256,13 +266,78 @@ def split_file(my_file, to_size):
                 num_file += 1
                 #if num_file > 5:
                 #    exit()
-                split_file = open(my_file.replace(".txt", f"_{num_file}.txt"), "w", encoding = "utf-8")
+                split_file = open(join(my_dir, "in", my_file.replace(".txt", f"_{num_file}.txt")), "w", encoding = "utf-8")
             else:
+                if line == "\n":
+                    continue
+                #For many adler uncomment thile follow line.
+                #print(line.rstrip(), file = split_file)
+                #For Ruth remove the comment from the follow 3 lines.
                 words = re.findall(r'\d+[.,]\d+\([.,]\d\)*|\w+[\"\'\.]\w+|\w+|\S',line + ".")
-                print(*words, sep="\n" ,file = split_file)
-        print("\n\n", sep="\n" ,file = split_file)
+                print(*words, sep="\n", end="\n\n" ,file = split_file)
+        print("\n", sep="\n" ,file = split_file)
         split_file.close()
 
+def parse_tzarfati_tagger(my_dir):
+    dictionary = {}
+    a = ""
+    a.rsplit()
+    # return the name of files without the format 
+    files = [f for f in listdir(my_dir) if isfile(join(my_dir,f))]
+    files = [f.split(".")[0] for f in files]
+    files = list(set(files)) # return uniq names
+    for f in files:
+        if not isfile(join(my_dir,f+".mapping")) or not isfile(join(my_dir, f+".segmentation")):
+            print(f"Missing file: {f}.")
+            continue
+        else:
+            parse_one_file(join(my_dir,f), dictionary)
+    write_dictionary_to_file(dictionary, f"{my_dir}\\heb_dictionaty.csv")
+
+def parse_one_file(my_file, dic):
+    mapping = open(my_file + ".mapping", encoding="utf-8").readlines()
+    mapping = [re.split(r"\s", a) for a in mapping]
+    segmentation = open(my_file + ".segmentation", encoding="utf-8").readlines()
+    segmentation = [re.split(r":", re.sub(r"\s", "", a)) for a in segmentation]
+    j = 0
+    for i in range(len(segmentation)):
+        mapp = mapping[j]
+        seg  = segmentation[i]
+        word = "".join(segmentation[i])
+        if word in dic or word == "":
+            j += 1
+            continue
+        prefix = ""
+        if len(seg) > 1:
+            prefix = "".join(seg[:len(seg) -1])
+        rest = seg[len(seg)-1]
+        while True:
+            if rest in mapp:
+                break
+            j += 1
+            mapp = mapping[j]
+        print(mapp[3], rest)
+        root, suffix = get_root_and_suff(mapp[3], rest )
+        dic[word] = (prefix, root, suffix)
+        j += 1
+
+def get_root_and_suff(root, word):
+    if word == root: return root, ""
+    for i in range(len(root)):
+        if word[i] != root[i] and not_sofit(word[i], root[i]):
+            return root, word[i:]
+    return root, word[len(root):]
+
+def write_dictionary_to_file(dic, f):
+    with open(f, "w", encoding ="utf-8") as dic_file:
+        print("word", "prefix", "root", "suffix", file=dic_file, sep=',')
+        for key in dic:
+            print('"' + str(key), dic[key][0], dic[key][1],  dic[key][2] + '"', file=dic_file , sep='","')
+
+def not_sofit(a,b):
+    if (a == "כ" and b == "ך") or (a == "ך" and b == "כ") or (a == "מ" and b == "ם") or (a == "ם" and b == "מ") or (a == "נ" and b == "ן") or (a == "ן" and b == "נ") or (a == "פ" and b == "ף") or (a == "ף" and b == "פ") or (a == "צ" and b == "ץ") or (a == "ץ" and b == "צ"):
+        return False
+    return True
 
 if __name__ == "__main__":
     start = datetime.datetime.now()
@@ -280,8 +355,9 @@ if __name__ == "__main__":
     #reorg_files(my_dir = r"C:/Users/rzanzuri/Desktop/reference_project/Data/Sefaria-Export-master/txt")
     #textHandler.clean_hebrew_text_from_dir(r"C:/Users/rzanzuri/Desktop/hebrew_data","full_hebrew.txt")
     #build_stem_text_that_contain_all_words(r"C:/Users/rzanzuri/Desktop/hebrew_data/full_hebrew.txt")
-    #split_file(r"C:/Users/rzanzuri/Desktop/reference_project/Data/hebrew_data/full_hebrew_stem.txt", 3*1024*1024)
-    run_in_parallel_go_command(10)
+    #split_file(r"C:/Users/rzanzuri/Desktop/reference_project/Data/hebrew_data", "full_hebrew_stem.txt", 100*1024)
+    run_in_parallel_go_command(3)
+    #parse_tzarfati_tagger(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\out\\")
 
     finish = datetime.datetime.now()
     print("end:", finish)
