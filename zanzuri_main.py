@@ -216,11 +216,11 @@ def build_stem_text_that_contain_all_words(my_file):
                             print(f"completed {int(i*100/len(lines))} %, total lines :", len(all_words))
     out.close()
 
-def run_in_parallel_go_command(start , threads_count):
+def run_in_parallel_go_command(start , count):
     #threads = []
     base = r"C:/Users/rzanzuri/Desktop/reference_project/"
     try:
-        for i in range(start, threads_count):
+        for i in range(start, start + count):
             #threads.append(Thread(target=run_thread, args=(f"full_hebrew_stem_{i}", base + r"Data/hebrew_data/in", base + r"Data/hebrew_data/out" , base + r"yap/src/yap" )))
             run_thread(f"full_hebrew_stem_{i}", base + r"Data/hebrew_data/in", base + r"Data/hebrew_data/out" , base + r"yap/src/yap" )
             #threads.append(Thread(target=run_java, args=(f"full_hebrew_stem_{i}","")))
@@ -356,7 +356,7 @@ if __name__ == "__main__":
     #textHandler.clean_hebrew_text_from_dir(r"C:/Users/rzanzuri/Desktop/hebrew_data","full_hebrew.txt")
     #build_stem_text_that_contain_all_words(r"C:/Users/rzanzuri/Desktop/hebrew_data/full_hebrew.txt")
     #split_file(r"C:/Users/rzanzuri/Desktop/reference_project/Data/hebrew_data", "full_hebrew_stem.txt", 100*1024)
-    run_in_parallel_go_command(0, 400)
+    run_in_parallel_go_command(3, 297)
     #parse_tzarfati_tagger(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\out\\")
 
     finish = datetime.datetime.now()
