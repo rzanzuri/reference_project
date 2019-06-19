@@ -449,7 +449,7 @@ def triangle_text(my_file, token_file, vector):
     print(f"missing words: {missing_words}.")
     with open(my_file.replace(".txt", "_triangle.txt"),"w", encoding="utf-8") as triangle:
         for line in new_lines:
-            triangle.write(line)
+            triangle.write(line.replace("   "," ").replace("  ", " "))
 
 def build_sentenses_file(my_file, out_file):
     with_ner, without_ner = get_sentenses(my_file)
@@ -542,11 +542,6 @@ if __name__ == "__main__":
     #build_sentenses_file(r"C:\Users\rzanzuri\Desktop\reference_project\Data\final_eng_text.txt", r"C:\Users\rzanzuri\Desktop\reference_project\Data\English_NER_1000.txt")
     #build_dict_heb_statistics(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part_1.txt",r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\out\heb_dictionaty.csv")
     
-    with open(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part_1_triangle.txt", encoding = "utf-8") as f: 
-        text = f.read().replace("  "," ").replace("  ", " ")
-        with open(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\HebrewTextPart\HebrewTextPart.txt", "w", encoding = "utf-8") as ff: 
-            ff.write(text)
-
     finish = datetime.datetime.now()
     print("end:", finish)
     print("total:", finish - start)
