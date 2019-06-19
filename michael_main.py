@@ -15,7 +15,7 @@ import os
 from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
 import Python_lib.read_html as read_html
-from tika import parser
+#from tika import parser
 import re
 from Python_lib.textHandler import clean_hebrew_text_from_dir
 
@@ -118,13 +118,13 @@ def create_vec_model():
     from keras import layers
     from keras.layers import Embedding, LSTM, Dense, Activation, Flatten, Bidirectional
     from keras.models import model_from_json
-    iters = 50
-    min_count = 20
+    iters = 45
+    min_count = 30
     vec_size = 300 
-    win_size = 10
+    win_size = 12
     workers = multiprocessing.cpu_count() 
     vec_model_root_path = "./VecModels"
-    curpus_path = "./Data/HebrewText/"  
+    curpus_path = "./Data/hebrew_data/HebrewTextPart"
 
     vec_model = vectorsModel.get_model_vectors(curpus_path, vec_model_root_path, win_size, iters, min_count, vec_size, workers)
 
@@ -177,20 +177,20 @@ def create_rand_sents():
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
-    base_path = "C:\\hebrewNER-1.0.1-Win\\bin\\"
-    with open("./Data/HebrewText/HebrewText_3000_Sen.txt",'r',encoding='utf-8') as f:
-        text = f.readlines()
+    # base_path = "C:\\hebrewNER-1.0.1-Win\\bin\\"
+    # with open("./Data/HebrewText/HebrewText_3000_Sen.txt",'r',encoding='utf-8') as f:
+    #     text = f.readlines()
 
-    with open("./Data/HebrewText/HebrewText.ans",'w',encoding='utf-8') as ans_file:
-        for i, sent in enumerate(text):
-            file_name = "testFiles\\" + str(i) + ".maxent"
-            with open(base_path + file_name,'r') as f:
-                line = f.read()
-                if "PERSON" in line or "LOCATION" in line or "ORGANIZATION" in line:
-                    ans  = "1"
-                else:
-                    ans = "0"
-            ans_file.write(sent + ans + "\n")
+    # with open("./Data/HebrewText/HebrewText.ans",'w',encoding='utf-8') as ans_file:
+    #     for i, sent in enumerate(text):
+    #         file_name = "testFiles\\" + str(i) + ".maxent"
+    #         with open(base_path + file_name,'r') as f:
+    #             line = f.read()
+    #             if "PERSON" in line or "LOCATION" in line or "ORGANIZATION" in line:
+    #                 ans  = "1"
+    #             else:
+    #                 ans = "0"
+    #         ans_file.write(sent + ans + "\n")
         
     
     

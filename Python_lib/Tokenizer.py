@@ -1,5 +1,6 @@
 #pip install --upgrade google-cloud-translate
 import re
+import sys
 import datetime
 from nltk.corpus import words
 from nltk.corpus import wordnet as wn
@@ -137,9 +138,9 @@ def load_tokens(file_name, with_count = 0):
         for line in lines:
             try:
                 if with_count:
-                    token_words[line[0]]=(line[1],line[2],line[3],line[4])
+                    token_words[line[0].replace("&#&", '"')]=(line[1].replace("&#&",'"'),line[2].replace("&#&",'"'),line[3].replace("&#&",'"'),line[4])
                 else:
-                    token_words[line[0]]=(line[1],line[2],line[3])
+                    token_words[line[0].replace("&#&",'"')]=(line[1].replace("&#&",'"'),line[2].replace("&#&",'"'),line[3].replace("&#&",'"'))
             except:
                 print(f"have an issue with {line}")
     return token_words
@@ -153,11 +154,11 @@ def save_tokens(file_name, token_words , with_count = 0):
         for word in token_words:
             try:
                 if with_count:
-                    print('"' + str(word), token_words[word][0], token_words[word][1],  token_words[word][2], str(token_words[word][3]) + '"', file=token_file , sep='","')
+                    print('"' + str(word).replace('"','&#&'), token_words[word][0].replace('"','&#&'), token_words[word][1].replace('"','&#&'),  token_words[word][2].replace('"','&#&'), str(token_words[word][3]) + '"', file=token_file , sep='","')
                 else:
-                    print('"' + str(word), token_words[word][0], token_words[word][1],  token_words[word][2] + '"', file=token_file , sep='","')
+                    print('"' + str(word).replace('"','&#&'), token_words[word][0].replace('"','&#&'), token_words[word][1].replace('"','&#&'),  token_words[word][2].replace('"','&#&') + '"', file=token_file , sep='","')
             except:
-                print(f"{word} is not wrote to tokens.")
+                print(f"{word} is not wrote to tokens, {sys.exc_info()}.")
 
 def split_to_tokens(word):
     temp = removePref(word)

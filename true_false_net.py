@@ -25,12 +25,12 @@ test_size = 0.25
 max_len_sent = 100
 
 #model setup
-vec_model_root_path = "./VecModels"
+vec_model_root_path = r"C:\Users\rzanzuri\Desktop\reference_project\VecModels"
 # curpus_path = "./Data/Wiki_en/"
 # curpus_path = "./Data/sentiment_analysis/"
 # curpus_path = "./Data/shuffled_clean_shut/"
 # curpus_path = "./Data/RabannyText/"
-curpus_path = "./Data/HebrewText/"
+curpus_path = r"C:\Users\rzanzuri\Desktop\reference_project\Data\RabannyText"
 
 # vec_model_curpus_path =  "./Data/sentiment_analysis/"
 # vec_model = vectorsModel.temp_for_dror(vec_model_root_path, win_size, iters, min_count, vec_size, workers)
@@ -57,9 +57,9 @@ model.add(layers.Embedding(vocab_size, emdedding_size,
                            weights=[pretrained_weights], 
                            input_length=maxlen, 
                            trainable=True))
-model.add(layers.GlobalMaxPool1D())
+# model.add(layers.GlobalMaxPool1D())
 # model.add(LSTM(units=emdedding_size))
-# model.add(Bidirectional(LSTM(units=emdedding_size)))
+model.add(Bidirectional(LSTM(units=emdedding_size)))
 
 model.add(layers.Dense(10, activation='relu'))
 model.add(layers.Dense(1, activation='sigmoid'))
@@ -68,7 +68,7 @@ model.compile(optimizer='adam',
               metrics=['accuracy'])
 model.summary()
 
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+#logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 history = model.fit(X_train, Y_train,
                     epochs=epochs,
@@ -78,3 +78,4 @@ loss, accuracy = model.evaluate(X_train, Y_train, verbose=False)
 print("Training Accuracy: {:.4f}".format(accuracy))
 loss, accuracy = model.evaluate(X_test, Y_test, verbose=False)
 print("Testing Accuracy:  {:.4f}".format(accuracy))
+model.save("./RabannyText_lstm.md")
