@@ -9,3 +9,5 @@ VecModels
 Data
 .vscode
 yap*
+Nets
+training_checkpoints

@@ -118,13 +118,13 @@ def create_vec_model():
     from keras import layers
     from keras.layers import Embedding, LSTM, Dense, Activation, Flatten, Bidirectional
     from keras.models import model_from_json
-    iters = 50
-    min_count = 20
+    iters = 45
+    min_count = 30
     vec_size = 300 
-    win_size = 10
+    win_size = 12
     workers = multiprocessing.cpu_count() 
     vec_model_root_path = "./VecModels"
-    curpus_path = "./Data/HebrewText/"  
+    curpus_path = "./Data/HebrewTextPart/"
 
     vec_model = vectorsModel.get_model_vectors(curpus_path, vec_model_root_path, win_size, iters, min_count, vec_size, workers)
 
@@ -174,28 +174,48 @@ def create_rand_sents():
     t1.join()
     t2.join()
 
+def create_ans_file(file_path, true_count, false_count, dest_file_path):
+    sents = []
+    anses = []
+    final_sents = []
+    final_anses = []
+    indexes = list(range(true_count + false_count))
+    random.shuffle(indexes)
+    with open(file_path, 'r',encoding='utf-8') as f:
+        lines = f.readlines()
+
+    for i ,line in enumerate(lines):
+        if i % 2 == 1 :
+            anses.append(line)
+        else:
+            sents.append(line)
+
+    for i in range(len(sents)):
+        if anses[i][0] == "1" and true_count == 0:
+            continue
+        elif anses[i][0] == "0" and false_count == 0:
+            continue
+
+        final_sents.append(sents[i])
+        final_anses.append(anses[i])
+
+        if anses[i][0] == "1":
+            true_count -= 1
+        else: false_count -= 1
+
+    with open(dest_file_path,'w', encoding='utf-8') as f:
+        for i in indexes:
+            f.write(final_sents[i])
+            f.write(final_anses[i])
+
+
 if __name__ == "__main__":
     start = datetime.datetime.now()
-    print("start:", start)
-    base_path = "C:\\hebrewNER-1.0.1-Win\\bin\\"
-    with open("./Data/HebrewText/HebrewText_3000_Sen.txt",'r',encoding='utf-8') as f:
-        text = f.readlines()
-
-    with open("./Data/HebrewText/HebrewText.ans",'w',encoding='utf-8') as ans_file:
-        for i, sent in enumerate(text):
-            file_name = "testFiles\\" + str(i) + ".maxent"
-            with open(base_path + file_name,'r') as f:
-                line = f.read()
-                if "PERSON" in line or "LOCATION" in line or "ORGANIZATION" in line:
-                    ans  = "1"
-                else:
-                    ans = "0"
-            ans_file.write(sent + ans + "\n")
-        
+    print("start:", start) 
     
-    
+    # create_ans_file("./Data/‏‏HebrewTextForNER/HebrewTextForNER_3000sen.ans", 550, 550 , "./Data/‏‏HebrewTextForNER/HebrewTextForNER.ans")
     # create_rand_sents()    
-    # create_vec_model()
+    create_vec_model()
     # dror_task()
     # clean_hebrew_text_from_dir("./Data/RabannyText/", "RabannyText.txt")
     # download_maariv_pages()

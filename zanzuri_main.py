@@ -18,7 +18,7 @@ from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
 
 import Python_lib.Tokenizer as Tokenizer
-import Python_lib.Statistics_text as Statistics
+# import Python_lib.Statistics_text as Statistics
 import Python_lib.read_html as read_html
 import Python_lib.textHandler as textHandler
 import Python_lib
@@ -216,33 +216,33 @@ def build_stem_text_that_contain_all_words(my_file):
                             print(f"completed {int(i*100/len(lines))} %, total lines :", len(all_words))
     out.close()
 
-def run_in_parallel_go_command(threads_count):
-    threads = []
-    base = r"C:/Users/rzanzuri/Desktop/reference_project/"
+def run_in_parallel_go_command(start, amount):
+    base = "D:\\Final Project\\reference_project\\"
     try:
-        for i in range(threads_count):
-            #threads.append(Thread(target=run_thread, args=(f"full_hebrew_stem_{i}", base + r"Data/hebrew_data/in", base + r"Data/hebrew_data/out" , base + r"yap/src/yap" )))
-            run_thread(f"full_hebrew_stem_{i}", base + r"Data/hebrew_data/in", base + r"Data/hebrew_data/out" , base + r"yap/src/yap" )
-
-        [t.start() for t in threads]
-        [t.join() for t in threads]
+        for i in range(start, start + amount):
+            try:
+                run_thread(f"full_hebrew_stem_{i}", base + "Data\\hebrew_data\\in", base + "Data\\hebrew_data\\out" , "\"" + "D:\\Final Project\\yapproj\\src\\yap",i )
+            except:
+                print("Error")
     except:
         print ("Error:", sys.exc_info())
 
-def run_thread(file_name, in_path, out_path, yap_path):
+def run_thread(file_name, in_path, out_path, yap_path,i):
     print("run_thread.")
-    yap_command = join(yap_path,"yap.exe")
-    raw = " -raw " + join(in_path, file_name + ".txt")
-    out = " -out " + join(out_path, file_name + ".lattice")
-    inn = " -in " + join(out_path, file_name + ".lattice")
-    os = " -os " + join(out_path, file_name + ".segmentation")
-    om = " -om " + join(out_path, file_name + ".mapping")
-    oc = " -oc " + join(out_path, file_name + ".conll")
+    yap_command = join(yap_path,"yap.exe" + "\"")
+    
+    raw = " -raw " + join("\"" + in_path,  file_name + ".txt" + "\"")
+    out = " -out " + join("\"" + out_path, file_name + ".lattice" + "\"")
+    inn = " -in "  + join("\"" + out_path, file_name + ".lattice" + "\"")
+    # osr =  " -os " + join("\"" + out_path, file_name + ".segmentation" + "\"")
+    om =  " -om "  + join("\"" + out_path, file_name + ".mapping" + "\"")
+    # oc =  " -oc "  + join("\"" + out_path, file_name + ".conll" + "\"")
 
     subprocess.run(yap_command + " hebma" + raw + out)
-    subprocess.run(yap_command + " joint" + inn + os+ om + oc )
-    os.remove(join(out_path, file_name + ".lattice"))
+    subprocess.run(yap_command + " md" + inn + om )
 
+    os.remove(join(out_path, file_name + ".lattice"))
+    # os.remove(join(out_path, file_name + ".conll"))
 
 def split_file(my_file, to_size):
     with open(my_file, encoding = "utf-8") as f:
@@ -264,6 +264,7 @@ def split_file(my_file, to_size):
         split_file.close()
 
 
+
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
@@ -280,8 +281,22 @@ if __name__ == "__main__":
     #reorg_files(my_dir = r"C:/Users/rzanzuri/Desktop/reference_project/Data/Sefaria-Export-master/txt")
     #textHandler.clean_hebrew_text_from_dir(r"C:/Users/rzanzuri/Desktop/hebrew_data","full_hebrew.txt")
     #build_stem_text_that_contain_all_words(r"C:/Users/rzanzuri/Desktop/hebrew_data/full_hebrew.txt")
-    #split_file(r"C:/Users/rzanzuri/Desktop/reference_project/Data/hebrew_data/full_hebrew_stem.txt", 3*1024*1024)
-    run_in_parallel_go_command(10)
+    # split_file("D:\\Final Project\\reference_project\\Data\\hebrew_data\\full_hebrew_stem.txt", 0.1*1024*1024)
+    run_in_parallel_go_command(100,100)
+    run_in_parallel_go_command(300,100)
+    run_in_parallel_go_command(500,100)
+    run_in_parallel_go_command(700,100)
+    run_in_parallel_go_command(900,100)
+    run_in_parallel_go_command(1100,100)
+    run_in_parallel_go_command(1300,100)
+    run_in_parallel_go_command(1500,100)
+    run_in_parallel_go_command(1700,100)
+    run_in_parallel_go_command(1900,100)
+    run_in_parallel_go_command(2100,100)
+    run_in_parallel_go_command(2300,100)
+    run_in_parallel_go_command(2500,100)
+    run_in_parallel_go_command(2700,100)
+    run_in_parallel_go_command(2900,100)
 
     finish = datetime.datetime.now()
     print("end:", finish)

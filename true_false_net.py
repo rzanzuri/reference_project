@@ -24,20 +24,30 @@ limit = 1000
 test_size = 0.25
 max_len_sent = 100
 
+
+start = datetime.datetime.now()
+print("start:", start)
+
 #model setup
 vec_model_root_path = "./VecModels"
 # curpus_path = "./Data/Wiki_en/"
 # curpus_path = "./Data/sentiment_analysis/"
 # curpus_path = "./Data/shuffled_clean_shut/"
-# curpus_path = "./Data/RabannyText/"
-curpus_path = "./Data/HebrewText/"
+curpus_path = "./Data/RabannyText/"
+# curpus_path = "./Data/HebrewText/"
+# curpus_path = "./Data/‏‏HebrewTextForNER/"
+# curpus_path = "./Data/HebrewTextPart/"
+# curpus_path = "./Data/sentiment labelled sentences/"
+
+print("curpus_path:", curpus_path)
+# curpus_path = "./Data/EnglishTextForNER/"
 
 # vec_model_curpus_path =  "./Data/sentiment_analysis/"
 # vec_model = vectorsModel.temp_for_dror(vec_model_root_path, win_size, iters, min_count, vec_size, workers)
 # print(vec_model.wv['שאלה'])
 
-# vec_model = gensim.models.KeyedVectors.load_word2vec_format('./VecModels/GoogleNews-vectors-negative300.bin', binary=True)  
-vec_model = vectorsModel.get_model_vectors(curpus_path, vec_model_root_path, win_size, iters, min_count, vec_size, workers)
+vec_model = gensim.models.KeyedVectors.load_word2vec_format('./VecModels/GoogleNews-vectors-negative300.bin', binary=True)  
+# vec_model = vectorsModel.get_model_vectors(curpus_path, vec_model_root_path, win_size, iters, min_count, vec_size, workers)
 sentences, answers = dataSets.get_sentences_and_answers(curpus_path, NER.is_ner_exsits, max_len_sent = max_len_sent, limit= limit)
 
 X_train, X_test = dataSets.get_data_set(sentences,vec_model, test_size)
@@ -45,6 +55,10 @@ Y_train, Y_test = dataSets.get_data_set(answers, vec_model, test_size)
 
 pretrained_weights = vec_model.wv.syn0
 vocab_size, emdedding_size = pretrained_weights.shape
+
+# print(pretrained_weights)
+# print(pretrained_weights[0])
+# print(pretrained_weights[0][0])
 
 print('Result embedding shape:', pretrained_weights.shape)
 print('train_x shape:', X_train.shape)
@@ -68,13 +82,21 @@ model.compile(optimizer='adam',
               metrics=['accuracy'])
 model.summary()
 
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+# logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 history = model.fit(X_train, Y_train,
                     epochs=epochs,
                     verbose=False,
                     validation_data=(X_test, Y_test))
+
+
+
 loss, accuracy = model.evaluate(X_train, Y_train, verbose=False)
 print("Training Accuracy: {:.4f}".format(accuracy))
 loss, accuracy = model.evaluate(X_test, Y_test, verbose=False)
 print("Testing Accuracy:  {:.4f}".format(accuracy))
+model.save("./RabbnyText_regular.md")
+
+finish = datetime.datetime.now()
+print("end:", finish)
+print("total:", finish - start)
