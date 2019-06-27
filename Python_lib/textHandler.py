@@ -6,6 +6,7 @@ from os.path import isfile, join,isdir
 from threading import Thread
 
 def split_text_to_sentences(text, max_sen_len = -1):
+    print("split_text_to_sentences.")
     punkt_param = PunktParameters()
     abbreviation = ['u.s.a', 'fig','dr', 'vs', 'mr', 'mrs', 'prof', 'inc','i.e', 'a.m', 'acct', 'approx', 'ave', 'b.a' , 'ba' , 'b.o.t', 'bros', 'cf', 'e.g', 'encl', 'etc', 'ft', 'gal', 'p.a', 'p.m', 'sq', 'st', 'blvd', 'cyn', 'ln', 'rd', 'p.s']
     punkt_param.abbrev_types = set(abbreviation)
@@ -13,13 +14,15 @@ def split_text_to_sentences(text, max_sen_len = -1):
 
     sentences = []
 
-    for line in text.splitlines():
+    for i, line in enumerate(text.splitlines()):
         for sentence in tokenizer.tokenize(line):
             if(max_sen_len == -1):
                 sentences.append(sentence)
             else:
                 for sent in get_sentences_by_max_length(sentence, max_sen_len):
                     sentences.append(sent)
+        if i > 1000000:
+            break
     return sentences 
 
 def get_sentences_by_max_length(sentence, max_sen_len = -1):
@@ -43,6 +46,7 @@ def get_len_of_longest_sentence(sentences):
     return max_len
 
 def get_text_file(file, dir_path = ""):
+    print("get_text_file.")
     file_path = os.path.join(dir_path, file)
     if not os.path.isfile(file_path):
         print("ERROR: File not exists!")
@@ -56,6 +60,7 @@ def get_text_file(file, dir_path = ""):
     return text
 
 def get_sentences_from_file(file, dir_path = "", max_len_sent = -1):
+    print("get_sentences_from_file.")
     file_path = os.path.join(dir_path, file)
     text = get_text_file(file_path)
     return split_text_to_sentences(text, max_len_sent)

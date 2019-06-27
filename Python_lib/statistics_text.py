@@ -71,48 +71,64 @@ def check_ave_length_word(fname):
 # output: {fname}_tokenizer.csv - new token files
 #         dict_words - dictionary with the tokens (pre,root,suff,count) as value and the word as a key
 def checking_tokenizer_of_all_text (fname, dict_file):
-    length = 10000
+    length = 761060
     count = 0
+    missing_words = 0
+    total_words = 0
 
     dict_words = Tokenizer.load_tokens(dict_file, 0)
     with open(fname,encoding='utf8') as f:
         for line in f:
             count += 1
-            if count > length:
-                Tokenizer.save_tokens(fname + "_tokenizer.csv", dict_words, 1)
-                count = 0
+            if count % 76106 == 0: print(f"{(count/76106)*10}% was done.",f"\tmissing words: {missing_words}.", f"\tTotal words: {total_words}")
             if(line == "\n" or line == ' '):
                 continue
             line = line.rstrip()
-            words = re.findall(r'\d+[.,]\d+\([.,]\d\)*|\w+\.\w+|\w+|\S',line)
+            #words = re.findall(r'\d+[.,]\d+\([.,]\d\)*|\w+\.\w+|\w+|\S',line) # For English
+            words = re.findall(r'\d+[.,]\d+\([.,]\d\)*|\w+[\"\']\w+|\w+|\S',line) # For Hebrew
+            total_words += len(words)
             for word in words:
                 #print(word)
-                word = word.lower()
                 if word in dict_words:
                     if len(dict_words[word]) > 3:
                         dict_words[word] = dict_words[word][:3] + (dict_words[word][3] + 1,)
                     else:
                         dict_words[word] = dict_words[word] + (1,)
                 else:
-                    dict_words[word] = Tokenizer.split_to_tokens(word) + (1,)
+                    #dict_words[word] = Tokenizer.split_to_tokens(word) + (1,)
+                    dict_words[word] = ("",word,"",1)
+                    #if '"' not in word and "'" not in word and "." not in word:
+                    missing_words += 1
+                        #print(f"The word: {word} wasn't exists in the dic.")
+    print(f"missing words: {missing_words}.")
+    Tokenizer.save_tokens(fname + "_tokenizer.csv", dict_words, 1)
     return dict_words
 
 # loading token file and return the average of the tokens per word
-def check_ave_of_token (fname):
-    dict_words = Tokenizer.load_tokens(fname, with_count=1)
+def check_ave_of_token (fname, dic = None):
+    if dic == None:
+        dict_words = Tokenizer.load_tokens(fname, with_count=1)
+    else:
+        dict_words = dic
     word_count_regular = 0
     word_count_tokens = 0
+    count_word_with_partial = 0
     for word in dict_words:
         if len(dict_words[word]) > 3:
             word_count_regular += int(dict_words[word][3])
             token_length = 1
             if len(dict_words[word][0]) > 0:
                 token_length += 1
-            if len(dict_words[word][3]) > 0:
+            if len(dict_words[word][2]) > 0:
                 token_length += 1
+            if token_length > 1:
+                count_word_with_partial += int(dict_words[word][3])
             word_count_tokens += token_length * int(dict_words[word][3])
         else:
-            print(dict_words[word])
-    print(word_count_regular)
-    print(word_count_tokens)
+            print(f"missing word from dictt: {dict_words[word]}.")
+    print(f"The count of regular words: {word_count_regular}.")
+    print(f"The count of partial words: {word_count_tokens}.")
+    print(f"The count of words with partial: {count_word_with_partial}.")
     print("total:", word_count_tokens/word_count_regular)
+    print("total2 (how many word with partial):", count_word_with_partial/word_count_regular)
+    

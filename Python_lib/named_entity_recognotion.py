@@ -43,13 +43,13 @@ def refactor_sentence_by_entity(sentence, name):
 
     return ner_sent
 
-def get_ner_sentence (sentence):
-    output = paralleldots.ner(sentence)
-    if "entities" in output:
-        for element in output['entities']:
-            if (element["category"] == "name"):
-                return refactor_sentence_by_entity(sentence,element["name"])
-    return sentence
+#def get_ner_sentence (sentence):
+#    output = paralleldots.ner(sentence)
+#    if "entities" in output:
+#        for element in output['entities']:
+#            if (element["category"] == "name"):
+#                return refactor_sentence_by_entity(sentence,element["name"])
+#    return sentence
 
 
 if __name__ == "__main__":

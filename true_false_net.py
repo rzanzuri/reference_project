@@ -29,7 +29,7 @@ start = datetime.datetime.now()
 print("start:", start)
 
 #model setup
-vec_model_root_path = "./VecModels"
+vec_model_root_path = r"C:\Users\rzanzuri\Desktop\reference_project\VecModels"
 # curpus_path = "./Data/Wiki_en/"
 # curpus_path = "./Data/sentiment_analysis/"
 # curpus_path = "./Data/shuffled_clean_shut/"
@@ -71,9 +71,9 @@ model.add(layers.Embedding(vocab_size, emdedding_size,
                            weights=[pretrained_weights], 
                            input_length=maxlen, 
                            trainable=True))
-model.add(layers.GlobalMaxPool1D())
+# model.add(layers.GlobalMaxPool1D())
 # model.add(LSTM(units=emdedding_size))
-# model.add(Bidirectional(LSTM(units=emdedding_size)))
+model.add(Bidirectional(LSTM(units=emdedding_size)))
 
 model.add(layers.Dense(10, activation='relu'))
 model.add(layers.Dense(1, activation='sigmoid'))
