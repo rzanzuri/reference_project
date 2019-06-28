@@ -14,8 +14,8 @@ import time
 
 # corpus_path = "./Data/heb-eng/heb.txt"
 corpus_path = "./Data/spa-eng/spa.txt"
-num_examples = 5000
-EPOCHS = 1
+num_examples = 30000
+EPOCHS = 10
 path_to_file = corpus_path
 
 class Encoder(tf.keras.Model):
@@ -41,26 +41,38 @@ class BahdanauAttention(tf.keras.Model):
     self.W2 = tf.keras.layers.Dense(units)
     self.V = tf.keras.layers.Dense(1)
 
-  def call(self, query, forward_h, forward_c, backward_h, backward_c):
-    values = forward_h #Concatenate()([forward_h, backward_h])
+  def call(self, forward_h, forward_c, backward_h, backward_c, values):
+    # print("BahdanauAttention forward_h", forward_h, "\nforward_c", forward_c, "\nbackward_h", backward_h, "\nbackward_c", backward_c)
+    # print("BahdanauAttention query", query)
+    hidden_h = Concatenate()([forward_h, backward_h])
+    hidden_c = Concatenate()([forward_c, backward_c])
+    query = Concatenate()([hidden_h, hidden_c])
+    # print("BahdanauAttention values", values)
     # hidden shape == (batch_size, hidden size)
     # hidden_with_time_axis shape == (batch_size, 1, hidden size)
     # we are doing this to perform addition to calculate the score
     hidden_with_time_axis = tf.expand_dims(query, 1)
+    # print("BahdanauAttention hidden_with_time_axis", hidden_with_time_axis)
 
     # score shape == (batch_size, max_length, 1)
     # we get 1 at the last axis because we are applying score to self.V
     # the shape of the tensor before applying self.V is (batch_size, max_length, units)
     score = self.V(tf.nn.tanh(
         self.W1(values) + self.W2(hidden_with_time_axis)))
+    # print("BahdanauAttention score", score)
 
     # attention_weights shape == (batch_size, max_length, 1)
     attention_weights = tf.nn.softmax(score, axis=1)
+    # print("BahdanauAttention attention_weights", attention_weights)
 
     # context_vector shape after sum == (batch_size, hidden_size)
     context_vector = attention_weights * values
-    context_vector = tf.reduce_sum(context_vector, axis=1)
+    # print("BahdanauAttention context_vector", context_vector)
 
+    context_vector = tf.reduce_sum(context_vector, axis=1)
+    # print("BahdanauAttention context_vector", context_vector)
+
+    # print("BahdanauAttention return context_vector", context_vector, "attention_weights",attention_weights)
     return context_vector, attention_weights
 
 class Decoder(tf.keras.Model):
@@ -79,6 +91,7 @@ class Decoder(tf.keras.Model):
   def call(self, x, forward_h, forward_c, backward_h, backward_c, enc_output):
     # enc_output shape == (batch_size, max_length, hidden_size)
     context_vector, attention_weights = self.attention(forward_h, forward_c, backward_h, backward_c, enc_output)
+    # print("Decoder attention_weights", attention_weights)
 
     # x shape after passing through embedding == (batch_size, 1, embedding_dim)
     x = self.embedding(x)
@@ -94,7 +107,7 @@ class Decoder(tf.keras.Model):
 
     # output shape == (batch_size, vocab)
     x = self.fc(output)
-
+    # print("Decoder return x", x, "st_forward_h", st_forward_h, "st_forward_c", st_forward_c, "st_backward_h", st_backward_h, "st_backward_c", st_backward_c, "attention_weights", attention_weights)
     return x, st_forward_h, st_forward_c, st_backward_h, st_backward_c, attention_weights
 
 # Converts the unicode file to ascii
@@ -224,6 +237,7 @@ def evaluate(sentence):
         # storing the attention weights to plot later on
         attention_weights = tf.reshape(attention_weights, (-1, ))
         attention_plot[t] = attention_weights.numpy()
+        print("evaluate attention_plot[",t,"]",attention_plot[t])
 
         predicted_id = tf.argmax(predictions[0]).numpy()
 
@@ -240,6 +254,7 @@ def evaluate(sentence):
 # function for plotting the attention weights
 # function for plotting the attention weights
 def plot_attention(attention, sentence, predicted_sentence):
+    # print("plot_attention attention:", attention)
     fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(1, 1, 1)
     ax.matshow(attention, cmap='viridis')
@@ -350,5 +365,5 @@ translate(u'esta es mi vida.')
 translate(u'¿todavia estan en casa?')
 # Predicted translation: are you still at home ? <end> 
 # wrong translation
-translate(u'trata de averiguarlo.')
+# translate(u'trata de averiguarlo.')
 # Predicted translation: try to figure it out . <end> 
