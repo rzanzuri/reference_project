@@ -237,7 +237,7 @@ def evaluate(sentence):
         # storing the attention weights to plot later on
         attention_weights = tf.reshape(attention_weights, (-1, ))
         attention_plot[t] = attention_weights.numpy()
-        print("evaluate attention_plot[",t,"]",attention_plot[t])
+        # print("evaluate attention_plot[",t,"]",attention_plot[t])
 
         predicted_id = tf.argmax(predictions[0]).numpy()
 
