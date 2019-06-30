@@ -497,7 +497,8 @@ def print_with_time(text):
 
 def build_dict_heb_statistics(my_file, dictionary_file):
     #dic = Statistics.checking_tokenizer_of_all_text(my_file,dictionary_file)
-    Statistics.check_ave_of_token(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part_1.txt_tokenizer.csv")
+    #Statistics.check_ave_of_token(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part_1.txt_tokenizer.csv")
+    Statistics.check_ave_length_word(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\HebrewTextPart\HebrewTextPart.txt")
 
 def create_vector(words, partials, letters = 0):
     vector = []
@@ -538,9 +539,15 @@ if __name__ == "__main__":
     #parse_tzarfati_tagger(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\out", r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part_1.txt")
     #Statistics.check_ave_of_token(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\out\heb_dictionaty.csv")
     #triangle_text(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part1.txt", r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\out\heb_dictionaty.csv", create_vector(300,206))
-    triangle_text(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part_1.txt", r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\out\heb_dictionaty.csv", create_vector(300,206))
+    # with open(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part_1.txt",encoding="utf-8") as ff:
+    #     text = ff.read().split(".")
+    #     text = 
+    #     with open(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part_1_1.txt","w",encoding="utf-8") as f:
+    #         for line in text:
+    #             print(line.rstrip(),file=f)
+    #triangle_text(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part_1_1.txt", r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\out\heb_dictionaty.csv", create_vector(300,206))
     #build_sentenses_file(r"C:\Users\rzanzuri\Desktop\reference_project\Data\final_eng_text.txt", r"C:\Users\rzanzuri\Desktop\reference_project\Data\English_NER_1000.txt")
-    #build_dict_heb_statistics(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part_1.txt",r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\out\heb_dictionaty.csv")
+    build_dict_heb_statistics(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew_part_1.txt",r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\out\heb_dictionaty.csv")
     
     finish = datetime.datetime.now()
     print("end:", finish)

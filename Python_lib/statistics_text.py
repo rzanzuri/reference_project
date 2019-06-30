@@ -50,11 +50,13 @@ def check_ave_length_word(fname):
             words = line.split()
             for word in words:
                 #print(word)
-                word = word.lower()
+                word = re.findall(r'\d+[.,]\d+\([.,]\d\)*|\w+[\"\']\w+|\w+|\S',line)
                 if word in dict_words:
                     dict_words[word] += 1
                 else:
                     dict_words[word] = 1
+    sorted(dict_words, key= dict_words.get)
+    print(*dict_words.keys()[-20:])
     total_words = 0
     total_length_words = 0
     for word in dict_words:
