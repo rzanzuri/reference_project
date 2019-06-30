@@ -176,6 +176,41 @@ def create_rand_sents():
     t1.join()
     t2.join()
 
+def create_ans_file(file_path, true_count, false_count, dest_file_path):
+    sents = []
+    anses = []
+    final_sents = []
+    final_anses = []
+    indexes = list(range(true_count + false_count))
+    random.shuffle(indexes)
+    with open(file_path, 'r',encoding='utf-8') as f:
+        lines = f.readlines()
+
+    for i ,line in enumerate(lines):
+        if i % 2 == 1 :
+            anses.append(line)
+        else:
+            sents.append(line)
+
+    for i in range(len(sents)):
+        if anses[i][0] == "1" and true_count == 0:
+            continue
+        elif anses[i][0] == "0" and false_count == 0:
+            continue
+
+        final_sents.append(sents[i])
+        final_anses.append(anses[i])
+
+        if anses[i][0] == "1":
+            true_count -= 1
+        else: false_count -= 1
+
+    with open(dest_file_path,'w', encoding='utf-8') as f:
+        for i in indexes:
+            f.write(final_sents[i])
+            f.write(final_anses[i])
+
+
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
@@ -205,6 +240,9 @@ if __name__ == "__main__":
                 
 
 
+    # create_ans_file("./Data/‏‏HebrewTextForNER/HebrewTextForNER_3000sen.ans", 550, 550 , "./Data/‏‏HebrewTextForNER/HebrewTextForNER.ans")
+    # create_rand_sents()    
+    create_vec_model()
     # dror_task()
     # clean_hebrew_text_from_dir("./Data/RabannyText/", "RabannyText.txt")
     # download_maariv_pages()

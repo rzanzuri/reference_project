@@ -18,7 +18,7 @@ from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
 
 import Python_lib.Tokenizer as Tokenizer
-import Python_lib.Statistics_text as Statistics
+# import Python_lib.Statistics_text as Statistics
 import Python_lib.read_html as read_html
 import Python_lib.textHandler as textHandler
 import Python_lib.named_entity_recognotion as ner
@@ -230,7 +230,7 @@ def run_in_parallel_go_command(start , count):
     except:
         print ("Error:", sys.exc_info())
 
-def run_thread(file_name, in_path, out_path, yap_path):
+def run_thread(file_name, in_path, out_path, yap_path,i):
     print("run_thread.")
     yap_command = join(yap_path,"yap.exe")
     raw = " -raw " + join(in_path, file_name + ".txt")
@@ -515,6 +515,7 @@ def create_vector(words, partials, letters = 0):
 
 
 
+
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
@@ -531,6 +532,22 @@ if __name__ == "__main__":
     #reorg_files(my_dir = r"C:/Users/rzanzuri/Desktop/reference_project/Data/Sefaria-Export-master/txt")
     #textHandler.clean_hebrew_text_from_dir(r"C:/Users/rzanzuri/Desktop/hebrew_data","full_hebrew.txt")
     #build_stem_text_that_contain_all_words(r"C:/Users/rzanzuri/Desktop/hebrew_data/full_hebrew.txt")
+    # split_file("D:\\Final Project\\reference_project\\Data\\hebrew_data\\full_hebrew_stem.txt", 0.1*1024*1024)
+    run_in_parallel_go_command(100,100)
+    run_in_parallel_go_command(300,100)
+    run_in_parallel_go_command(500,100)
+    run_in_parallel_go_command(700,100)
+    run_in_parallel_go_command(900,100)
+    run_in_parallel_go_command(1100,100)
+    run_in_parallel_go_command(1300,100)
+    run_in_parallel_go_command(1500,100)
+    run_in_parallel_go_command(1700,100)
+    run_in_parallel_go_command(1900,100)
+    run_in_parallel_go_command(2100,100)
+    run_in_parallel_go_command(2300,100)
+    run_in_parallel_go_command(2500,100)
+    run_in_parallel_go_command(2700,100)
+    run_in_parallel_go_command(2900,100)
     #split_file(r"C:/Users/rzanzuri/Desktop/reference_project/Data/hebrew_data", "full_hebrew_stem.txt", 100*1024)
 
     #run_in_parallel_go_command(2000,100 )
