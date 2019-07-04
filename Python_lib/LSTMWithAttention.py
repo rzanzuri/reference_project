@@ -13,6 +13,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 """
+from keras.layers import LSTMCell, TimeDistributed, Dense
+import keras
+import tensorflow as tf
 
 # RNN "Cell" classes in Keras perform the actual data transformations at each timestep. Therefore, in order
 # to add attention to LSTM, we need to make a custom subclass of LSTMCell.

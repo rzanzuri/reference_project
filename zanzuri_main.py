@@ -427,7 +427,8 @@ def triangle_text(my_file, token_file, vector):
                 print_with_time(f"{persent*100}% Done.")
                 persent += 0.1
             new_line = ""
-            words = re.findall(r'\d+[.,]\d+\([.,]\d\)*|\w+[\"\']\w+|\w+|\S',line)
+            words = re.findall(r'\d+([.,]\d+)*|\w+[\"\']\w+|\w+|\S',line)
+            a= " ".join(words)
             for i, word in enumerate(words):
                 if j % len(vector) == 0:
                     random.shuffle(vector)

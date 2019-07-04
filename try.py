@@ -1,27 +1,18 @@
-from keras.layers import Embedding, Input,LSTM, Dense, Dropout
-from Python_lib.LSTMWithAttention import LSTMWithAttention
-from keras.models import Model
-import tensorflow as tf
+import numpy as np
 
-# Encoder Layers
-attenc_inputs = Input(shape=(len_input,), name="attenc_inputs")
-attenc_emb = Embedding(input_dim=vocab_in_size, output_dim=embedding_dim)
-attenc_lstm = LSTM(units=units, return_sequences=True, return_state=True)
-attenc_outputs, attstate_h, attstate_c = attenc_lstm(attenc_emb(attenc_inputs))
+input_data = [[11,12],[2],[31,32],[4],[5]]
+p = np.random.permutation(len(input_data))
+input_data = input_data[p]
+exit()
+import re
+f = open("./text.txt", encoding="utf-8")
+text = f.read()
+#text = '"אבא" אב"א אבא'
+words = re.findall(r'\d+[\.\,]\d+[\.\,]\d+|\d+[\.\,]\d+|d+|\w+[\"\']\w+|\w+|\S',text)
+a= " ".join(words)
+print(*a,sep="\n")
+exit()
 
-attenc_states = [attstate_h, attstate_c]
-attdec_inputs = Input(shape=(None,))
-attdec_emb = Embedding(input_dim=vocab_out_size, output_dim=embedding_dim)
-attdec_lstm = LSTMWithAttention(units=units, return_sequences=True, return_state=True)
-# Note that the only real difference here is that we are feeding attenc_outputs to the decoder now.
-attdec_lstm_out, _, _ = attdec_lstm(inputs=attdec_emb(attdec_inputs), 
-                                    constants=attenc_outputs, 
-                                    initial_state=attenc_states)
-attdec_d1 = Dense(units, activation="relu")
-attdec_d2 = Dense(vocab_out_size, activation="softmax")
-attdec_out = attdec_d2(Dropout(rate=.4)(attdec_d1(Dropout(rate=.4)(attdec_lstm_out))))
-attmodel = Model([attenc_inputs, attdec_inputs], attdec_out)
-attmodel.compile(optimizer=tf.train.AdamOptimizer(), loss="sparse_categorical_crossentropy", metrics=['sparse_categorical_accuracy'])
 from keras.models import Model
 from keras.layers import Input, LSTM, Dense
 import numpy as np

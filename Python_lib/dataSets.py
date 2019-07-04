@@ -90,8 +90,8 @@ def get_sentences_and_answers_by_dir_path(dir_path, get_answer_func, save = 1 ,d
         if(limit != -1 and i >= limit): break
         answer = get_answer_func(sentence)
         if(answer != ""):
-            answers.append(answer)
-            sentences.append(sentence)            
+            answers.append("<start> " + answer + " <end>")
+            sentences.append("<start> " + sentence + " <end>")            
             if(save):
                 try:
                     dest_file.write(sentence + "\n")
@@ -127,8 +127,8 @@ def get_sentences_and_answers_by_file_path(file_path, get_answer_func, save = 1 
         if(limit != -1 and i >= limit): break
         answer = get_answer_func(sentence)
         if(answer != ""):
-            answers.append(answer)
-            sentences.append(sentence)            
+            answers.append("<start> " + answer.strip().rstrip() + " <end>")
+            sentences.append("<start> " + sentence.strip().rstrip() + " <end>")            
             if save:
                 try:
                     dest_file.write(sentence + "\n")
@@ -151,9 +151,9 @@ def get_sentences_and_answers_from_existing_file(file_path, limit = -1):
         for i, sentence in enumerate(f.readlines()):
             if(limit != -2 and i >= limit): break
             if(i%2 == 0):
-                sentences.append(sentence)
+                sentences.append("<start> " + sentence.strip().rstrip() + " <end>")            
             else:
-                answers.append(sentence)
+                answers.append("<start> " + sentence.strip().rstrip() + " <end>")
 
     return sentences, answers    
 
