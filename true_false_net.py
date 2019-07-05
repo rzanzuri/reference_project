@@ -96,9 +96,9 @@ model.add(layers.Embedding(vocab_size, emdedding_size,
                            weights=[pretrained_weights], 
                            input_length=maxlen, 
                            trainable=True))
-# model.add(layers.GlobalMaxPool1D())
+model.add(layers.GlobalMaxPool1D())
 # model.add(LSTM(units=emdedding_size))
-model.add(Bidirectional(LSTM(units=emdedding_size)))
+# model.add(Bidirectional(LSTM(units=emdedding_size)))
 
 model.add(layers.Dense(10, activation='relu'))
 model.add(layers.Dense(1, activation='sigmoid'))

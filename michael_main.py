@@ -139,8 +139,8 @@ def create_vec_model():
     from keras import layers
     from keras.layers import Embedding, LSTM, Dense, Activation, Flatten, Bidirectional
     from keras.models import model_from_json
-    iters = 45
-    min_count = 30
+    iters = 25
+    min_count = 15 
     vec_size = 300 
     win_size = 12
     workers = multiprocessing.cpu_count() 
@@ -148,6 +148,8 @@ def create_vec_model():
     curpus_path = "./Data/hebrew_data/HebrewTextPart"
 
     vec_model = vectorsModel.get_model_vectors(curpus_path, vec_model_root_path, win_size, iters, min_count, vec_size, workers)
+
+    return vec_model
 
 def download_maariv_pages():
     start_article = 670001
@@ -257,6 +259,15 @@ if __name__ == "__main__":
         
     
     
+    # create_rand_sents()
+    vec_model = create_vec_model()
+    most_similar = vec_model.most_similar(positive=["נוסף", "ת"], topn = 10)
+    for sim_line in most_similar:
+        if sim_line[0] in vec_model.wv.vocab:
+            print(sim_line[0] + "\n" + str(sim_line[1]) + "\n")
+                
+
+
     # create_ans_file("./Data/‏‏HebrewTextForNER/HebrewTextForNER_3000sen.ans", 550, 550 , "./Data/‏‏HebrewTextForNER/HebrewTextForNER.ans")
     # create_rand_sents()    
     # create_vec_model()
