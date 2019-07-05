@@ -36,11 +36,11 @@ class LanguageIndex():
             self.word2idx[word] = i + 1
             self.idx2word[i+1] = word
 
-# Download the file
-path_to_zip = tf.keras.utils.get_file(
-    'spa-eng.zip', origin='http://download.tensorflow.org/data/spa-eng.zip', 
-    extract=True)
-path_to_file = os.path.dirname(path_to_zip)+"/spa-eng/spa.txt"
+# # Download the file
+# path_to_zip = tf.keras.utils.get_file(
+#     'spa-eng.zip', origin='http://download.tensorflow.org/data/spa-eng.zip', 
+#     extract=True)
+path_to_file = "./Data/spa-eng/spa.txt"
 
 def unicode_to_ascii(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
