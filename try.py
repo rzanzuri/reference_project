@@ -1,178 +1,381 @@
-from keras.models import Model
-from keras.layers import Input, LSTM, Dense
-import numpy as np
-
-batch_size = 64  # Batch size for training.
-epochs = 100  # Number of epochs to train for.
-latent_dim = 256  # Latent dimensionality of the encoding space.
-num_samples = 10000  # Number of samples to train on.
-# Path to the data txt file on disk.
-data_path = 'fra-eng/fra.txt'
-
-# Vectorize the data.
-input_texts = []
-target_texts = []
-input_characters = set()
-target_characters = set()
-with open(data_path, 'r', encoding='utf-8') as f:
-    lines = f.read().split('\n')
-for line in lines[: min(num_samples, len(lines) - 1)]:
-    input_text, target_text = line.split('\t')
-    # We use "tab" as the "start sequence" character
-    # for the targets, and "\n" as "end sequence" character.
-    target_text = '\t' + target_text + '\n'
-    input_texts.append(input_text)
-    target_texts.append(target_text)
-    for char in input_text:
-        if char not in input_characters:
-            input_characters.add(char)
-    for char in target_text:
-        if char not in target_characters:
-            target_characters.add(char)
-
-input_characters = sorted(list(input_characters))
-target_characters = sorted(list(target_characters))
-num_encoder_tokens = len(input_characters)
-num_decoder_tokens = len(target_characters)
-max_encoder_seq_length = max([len(txt) for txt in input_texts])
-max_decoder_seq_length = max([len(txt) for txt in target_texts])
-
-print('Number of samples:', len(input_texts))
-print('Number of unique input tokens:', num_encoder_tokens)
-print('Number of unique output tokens:', num_decoder_tokens)
-print('Max sequence length for inputs:', max_encoder_seq_length)
-print('Max sequence length for outputs:', max_decoder_seq_length)
-
-input_token_index = dict(
-    [(char, i) for i, char in enumerate(input_characters)])
-target_token_index = dict(
-    [(char, i) for i, char in enumerate(target_characters)])
-
-encoder_input_data = np.zeros(
-    (len(input_texts), max_encoder_seq_length, num_encoder_tokens),
-    dtype='float32')
-decoder_input_data = np.zeros(
-    (len(input_texts), max_decoder_seq_length, num_decoder_tokens),
-    dtype='float32')
-decoder_target_data = np.zeros(
-    (len(input_texts), max_decoder_seq_length, num_decoder_tokens),
-    dtype='float32')
-
-for i, (input_text, target_text) in enumerate(zip(input_texts, target_texts)):
-    for t, char in enumerate(input_text):
-        encoder_input_data[i, t, input_token_index[char]] = 1.
-    for t, char in enumerate(target_text):
-        # decoder_target_data is ahead of decoder_input_data by one timestep
-        decoder_input_data[i, t, target_token_index[char]] = 1.
-        if t > 0:
-            # decoder_target_data will be ahead by one timestep
-            # and will not include the start character.
-            decoder_target_data[i, t - 1, target_token_index[char]] = 1.
-
-# Define an input sequence and process it.
-encoder_inputs = Input(shape=(None, num_encoder_tokens))
-encoder = LSTM(latent_dim, return_state=True)
-encoder_outputs, state_h, state_c = encoder(encoder_inputs)
-# We discard `encoder_outputs` and only keep the states.
-encoder_states = [state_h, state_c]
-
-# Set up the decoder, using `encoder_states` as initial state.
-decoder_inputs = Input(shape=(None, num_decoder_tokens))
-# We set up our decoder to return full output sequences,
-# and to return internal states as well. We don't use the
-# return states in the training model, but we will use them in inference.
-decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
-decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
-                                     initial_state=encoder_states)
-decoder_dense = Dense(num_decoder_tokens, activation='softmax')
-decoder_outputs = decoder_dense(decoder_outputs)
-
-# Define the model that will turn
-# `encoder_input_data` & `decoder_input_data` into `decoder_target_data`
-model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
-
-# Run training
-model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
-          batch_size=batch_size,
-          epochs=epochs,
-          validation_split=0.2)
-# Save model
-model.save('s2s.h5')
-
-# Next: inference mode (sampling).
-# Here's the drill:
-# 1) encode input and retrieve initial decoder state
-# 2) run one step of decoder with this initial state
-# and a "start of sequence" token as target.
-# Output will be the next target token
-# 3) Repeat with the current target token and current states
-
-# Define sampling models
-encoder_model = Model(encoder_inputs, encoder_states)
-
-decoder_state_input_h = Input(shape=(latent_dim,))
-decoder_state_input_c = Input(shape=(latent_dim,))
-decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
-decoder_outputs, state_h, state_c = decoder_lstm(
-    decoder_inputs, initial_state=decoder_states_inputs)
-decoder_states = [state_h, state_c]
-decoder_outputs = decoder_dense(decoder_outputs)
-decoder_model = Model(
-    [decoder_inputs] + decoder_states_inputs,
-    [decoder_outputs] + decoder_states)
-
-# Reverse-lookup token index to decode sequences back to
-# something readable.
-reverse_input_char_index = dict(
-    (i, char) for char, i in input_token_index.items())
-reverse_target_char_index = dict(
-    (i, char) for char, i in target_token_index.items())
+import re
 
 
-def decode_sequence(input_seq):
-    # Encode the input as state vectors.
-    states_value = encoder_model.predict(input_seq)
+with open("./Data/RabannyText/RabannyText.txt", "r", encoding='utf-8') as f:
+  text = f.read()
 
-    # Generate empty target sequence of length 1.
-    target_seq = np.zeros((1, 1, num_decoder_tokens))
-    # Populate the first character of target sequence with the start character.
-    target_seq[0, 0, target_token_index['\t']] = 1.
+print(text.find("צבאו''ת"))
 
-    # Sampling loop for a batch of sequences
-    # (to simplify, here we assume a batch of size 1).
-    stop_condition = False
-    decoded_sentence = ''
-    while not stop_condition:
-        output_tokens, h, c = decoder_model.predict(
-            [target_seq] + states_value)
+# with open("./Data/RabannyText/RabannyText_2231.txt", "w", encoding='utf-8') as f:
+#   i = 0
+#   for line in text:
+#     if i == 1000:
+#       break
+#     f.write(line)
+#     i+=1
 
-        # Sample a token
-        sampled_token_index = np.argmax(output_tokens[0, -1, :])
-        sampled_char = reverse_target_char_index[sampled_token_index]
-        decoded_sentence += sampled_char
+# from __future__ import absolute_import, division, print_function, unicode_literals
 
-        # Exit condition: either hit max length
-        # or find stop character.
-        if (sampled_char == '\n' or
-           len(decoded_sentence) > max_decoder_seq_length):
-            stop_condition = True
+# import tensorflow as tf
+# import matplotlib.pyplot as plt
+# from sklearn.model_selection import train_test_split
+# from tensorflow.keras.layers import LSTM, Dense, Embedding, Bidirectional, Concatenate
 
-        # Update the target sequence (of length 1).
-        target_seq = np.zeros((1, 1, num_decoder_tokens))
-        target_seq[0, 0, sampled_token_index] = 1.
+# import unicodedata
+# import re
+# import numpy as np
+# import os
+# import io
+# import time
 
-        # Update states
-        states_value = [h, c]
+# # corpus_path = "./Data/heb-eng/heb.txt"
+# corpus_path = "./Data/spa-eng/spa.txt"
+# num_examples = 30000
+# EPOCHS = 10
+# path_to_file = corpus_path
+# class Encoder(tf.keras.Model):
+#   def __init__(self, vocab_size, embedding_dim, enc_units, batch_sz):
+#     super(Encoder, self).__init__()
+#     self.batch_sz = batch_sz
+#     self.enc_units = enc_units
+#     self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim)
+#     self.gru = tf.keras.layers.GRU(self.enc_units,
+#                                    return_sequences=True,
+#                                    return_state=True,
+#                                    recurrent_initializer='glorot_uniform')
 
-    return decoded_sentence
+#   def call(self, x, hidden):
+#     x = self.embedding(x)
+#     output, state = self.gru(x, initial_state = hidden)
+#     return output, state
+
+#   def initialize_hidden_state(self):
+#     return tf.zeros((self.batch_sz, self.enc_units))
+
+# class BahdanauAttention(tf.keras.Model):
+#   def __init__(self, units):
+#     super(BahdanauAttention, self).__init__()
+#     self.W1 = tf.keras.layers.Dense(units)
+#     self.W2 = tf.keras.layers.Dense(units)
+#     self.V = tf.keras.layers.Dense(1)
+
+#   def call(self, query, values):
+
+#     # print("BahdanauAttention query", query)
+#     # print("BahdanauAttention values", values)
+
+#     # hidden shape == (batch_size, hidden size)
+#     # hidden_with_time_axis shape == (batch_size, 1, hidden size)
+#     # we are doing this to perform addition to calculate the score
+#     hidden_with_time_axis = tf.expand_dims(query, 1)
+#     # print("BahdanauAttention hidden_with_time_axis", hidden_with_time_axis)
+
+#     # score shape == (batch_size, max_length, 1)
+#     # we get 1 at the last axis because we are applying score to self.V
+#     # the shape of the tensor before applying self.V is (batch_size, max_length, units)
+#     score = self.V(tf.nn.tanh(
+#         self.W1(values) + self.W2(hidden_with_time_axis)))
+#     # print("BahdanauAttention score", score)
+
+#     # attention_weights shape == (batch_size, max_length, 1)
+#     attention_weights = tf.nn.softmax(score, axis=1)
+#     # print("BahdanauAttention attention_weights", attention_weights)
+
+#     # context_vector shape after sum == (batch_size, hidden_size)
+#     context_vector = attention_weights * values
+#     # print("BahdanauAttention context_vector", context_vector)
+
+#     context_vector = tf.reduce_sum(context_vector, axis=1)
+#     # print("BahdanauAttention context_vector", context_vector)
+
+#     # print("BahdanauAttention return context_vector", context_vector, "attention_weights",attention_weights)
+#     return context_vector, attention_weights
+
+# class Decoder(tf.keras.Model):
+#   def __init__(self, vocab_size, embedding_dim, dec_units, batch_sz):
+#     super(Decoder, self).__init__()
+#     self.batch_sz = batch_sz
+#     self.dec_units = dec_units
+#     self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim)
+#     self.gru = tf.keras.layers.GRU(self.dec_units,
+#                                    return_sequences=True,
+#                                    return_state=True,
+#                                    recurrent_initializer='glorot_uniform')
+#     self.fc = tf.keras.layers.Dense(vocab_size)
+
+#     # used for attention
+#     self.attention = BahdanauAttention(self.dec_units)
+
+#   def call(self, x, hidden, enc_output):
+#     # enc_output shape == (batch_size, max_length, hidden_size)
+#     context_vector, attention_weights = self.attention(hidden, enc_output)
+#     # print("Decoder attention_weights", attention_weights)
+
+#     # x shape after passing through embedding == (batch_size, 1, embedding_dim)
+#     x = self.embedding(x)
+
+#     # x shape after concatenation == (batch_size, 1, embedding_dim + hidden_size)
+#     x = tf.concat([tf.expand_dims(context_vector, 1), x], axis=-1)
+
+#     # passing the concatenated vector to the GRU
+#     output, state = self.gru(x)
+
+#     # output shape == (batch_size * 1, hidden_size)
+#     output = tf.reshape(output, (-1, output.shape[2]))
+
+#     # output shape == (batch_size, vocab)
+#     x = self.fc(output)
+#     # print("Decoder return x", x, "state", state, "attention_weights", attention_weights)
+#     return x, state, attention_weights
+
+# # Converts the unicode file to ascii
+# def unicode_to_ascii(s):
+#     return ''.join(c for c in unicodedata.normalize('NFD', s)
+#         if unicodedata.category(c) != 'Mn')
+
+# def preprocess_sentence(w):
+#     w = unicode_to_ascii(w.lower().strip())
+
+#     # creating a space between a word and the punctuation following it
+#     # eg: "he is a boy." => "he is a boy ."
+#     # Reference:- https://stackoverflow.com/questions/3645931/python-padding-punctuation-with-white-spaces-keeping-punctuation
+#     w = re.sub(r"([?.!,¿])", r" \1 ", w)
+#     w = re.sub(r'[" "]+', " ", w)
+
+#     # replacing everything with space except  
+#     if(any("\u0590" <= c <= "\u05EA" for c in w)):
+#         w = re.sub(r"[^א-ת?.!,¿]+", " ", w)
+#     else:
+#         w = re.sub(r"[^a-zA-Z?.!,¿]+", " ", w)
+
+#     w = w.rstrip().strip()
+
+#     # adding a start and an end token to the sentence
+#     # so that the model know when to start and stop predicting.
+#     w = '<start> ' + w + ' <end>'
+#     return w
+
+# def create_dataset(path, num_examples):
+#     lines = io.open(path, encoding='UTF-8').read().strip().split('\n')
+
+#     word_pairs = [[preprocess_sentence(w) for w in l.split('\t')]  for l in lines[:num_examples]]
+
+#     return zip(*word_pairs)
+
+# def max_length(tensor):
+#     return max(len(t) for t in tensor)
+
+# def tokenize(lang):
+#   lang_tokenizer = tf.keras.preprocessing.text.Tokenizer(
+#       filters='')
+#   lang_tokenizer.fit_on_texts(lang)
+
+#   tensor = lang_tokenizer.texts_to_sequences(lang)
+
+#   tensor = tf.keras.preprocessing.sequence.pad_sequences(tensor,
+#                                                          padding='post')
+
+#   return tensor, lang_tokenizer
+
+# def load_dataset(path, num_examples=None):
+#     # creating cleaned input, output pairs
+#     targ_lang, inp_lang = create_dataset(path, num_examples)
+
+#     input_tensor, inp_lang_tokenizer = tokenize(inp_lang)
+#     target_tensor, targ_lang_tokenizer = tokenize(targ_lang)
+
+#     return input_tensor, target_tensor, inp_lang_tokenizer, targ_lang_tokenizer
+
+# def loss_function(real, pred):
+#   mask = tf.math.logical_not(tf.math.equal(real, 0))
+#   loss_ = loss_object(real, pred)
+
+#   mask = tf.cast(mask, dtype=loss_.dtype)
+#   loss_ *= mask
+
+#   return tf.reduce_mean(loss_)
+
+# @tf.function
+# def train_step(inp, targ, enc_hidden):
+#   loss = 0
+
+#   with tf.GradientTape() as tape:
+#     enc_output, enc_hidden = encoder(inp, enc_hidden)
+
+#     dec_hidden = enc_hidden
+
+#     dec_input = tf.expand_dims([targ_lang.word_index['<start>']] * BATCH_SIZE, 1)
+
+#     # Teacher forcing - feeding the target as the next input
+#     for t in range(1, targ.shape[1]):
+#       # passing enc_output to the decoder
+#       predictions, dec_hidden, _ = decoder(dec_input, dec_hidden, enc_output)
+
+#       loss += loss_function(targ[:, t], predictions)
+
+#       # using teacher forcing
+#       dec_input = tf.expand_dims(targ[:, t], 1)
+
+#   batch_loss = (loss / int(targ.shape[1]))
+
+#   variables = encoder.trainable_variables + decoder.trainable_variables
+
+#   gradients = tape.gradient(loss, variables)
+
+#   optimizer.apply_gradients(zip(gradients, variables))
+
+#   return batch_loss
+
+# def evaluate(sentence):
+#     attention_plot = np.zeros((max_length_targ, max_length_inp))
+
+#     sentence = preprocess_sentence(sentence)
+
+#     inputs = [inp_lang.word_index[i] for i in sentence.split(' ')]
+#     inputs = tf.keras.preprocessing.sequence.pad_sequences([inputs],
+#                                                            maxlen=max_length_inp,
+#                                                            padding='post')
+#     inputs = tf.convert_to_tensor(inputs)
+
+#     result = ''
+
+#     hidden = [tf.zeros((1, units))]
+#     enc_out, enc_hidden = encoder(inputs, hidden)
+
+#     dec_hidden = enc_hidden
+#     dec_input = tf.expand_dims([targ_lang.word_index['<start>']], 0)
+
+#     for t in range(max_length_targ):
+#         predictions, dec_hidden, attention_weights = decoder(dec_input,
+#                                                              dec_hidden,
+#                                                              enc_out)
+
+#         # storing the attention weights to plot later on
+#         attention_weights = tf.reshape(attention_weights, (-1, ))
+#         attention_plot[t] = attention_weights.numpy()
+#         # print("evaluate attention_plot[",t,"]",attention_plot[t])
+
+#         predicted_id = tf.argmax(predictions[0]).numpy()
+
+#         result += targ_lang.index_word[predicted_id] + ' '
+
+#         if targ_lang.index_word[predicted_id] == '<end>':
+#             return result, sentence, attention_plot
+
+#         # the predicted ID is fed back into the model
+#         dec_input = tf.expand_dims([predicted_id], 0)
+
+#     return result, sentence, attention_plot
+# # function for plotting the attention weights
+# # function for plotting the attention weights
+# def plot_attention(attention, sentence, predicted_sentence):
+#     print("plot_attention attention:", attention)
+#     fig = plt.figure(figsize=(10,10))
+#     ax = fig.add_subplot(1, 1, 1)
+#     ax.matshow(attention, cmap='viridis')
+
+#     fontdict = {'fontsize': 14}
+
+#     ax.set_xticklabels([''] + sentence, fontdict=fontdict, rotation=90)
+#     ax.set_yticklabels([''] + predicted_sentence, fontdict=fontdict)
+
+#     plt.show()
+
+# def translate(sentence):
+#     result, sentence, attention_plot = evaluate(sentence)
+
+#     print('Input: %s' % (sentence))
+#     print('Predicted translation: {}'.format(result))
+
+#     attention_plot = attention_plot[:len(result.split(' ')), :len(sentence.split(' '))]
+#     plot_attention(attention_plot, sentence.split(' '), result.split(' '))
+
+# # Try experimenting with the size of that dataset
+# input_tensor, target_tensor, inp_lang, targ_lang = load_dataset(path_to_file, num_examples)
+
+# # Calculate max_length of the target tensors
+# max_length_targ, max_length_inp = max_length(target_tensor), max_length(input_tensor)
+
+# # Creating training and validation sets using an 80-20 split
+# input_tensor_train, input_tensor_val, target_tensor_train, target_tensor_val = train_test_split(input_tensor, target_tensor, test_size=0.2)
+
+# BUFFER_SIZE = len(input_tensor_train)
+# BATCH_SIZE = 64
+# steps_per_epoch = len(input_tensor_train)//BATCH_SIZE
+# embedding_dim = 256
+# units = 1024
+# vocab_inp_size = len(inp_lang.word_index)+1
+# vocab_tar_size = len(targ_lang.word_index)+1
+
+# dataset = tf.data.Dataset.from_tensor_slices((input_tensor_train, target_tensor_train)).shuffle(BUFFER_SIZE)
+# dataset = dataset.batch(BATCH_SIZE, drop_remainder=True)
 
 
-for seq_index in range(100):
-    # Take one sequence (part of the training set)
-    # for trying out decoding.
-    input_seq = encoder_input_data[seq_index: seq_index + 1]
-    decoded_sentence = decode_sequence(input_seq)
-    print('-')
-    print('Input sentence:', input_texts[seq_index])
-print('Decoded sentence:', decoded_sentence)
+# example_input_batch, example_target_batch = next(iter(dataset))
+# example_input_batch.shape, example_target_batch.shape
+
+# encoder = Encoder(vocab_inp_size, embedding_dim, units, BATCH_SIZE)
+
+# # sample input
+# sample_hidden = encoder.initialize_hidden_state()
+# sample_output, sample_hidden = encoder(example_input_batch, sample_hidden)
+# print ('Encoder output shape: (batch size, sequence length, units) {}'.format(sample_output.shape))
+# print ('Encoder Hidden state shape: (batch size, units) {}'.format(sample_hidden.shape))
+
+# attention_layer = BahdanauAttention(10)
+# attention_result, attention_weights = attention_layer(sample_hidden, sample_output)
+
+# print("Attention result shape: (batch size, units) {}".format(attention_result.shape))
+# print("Attention weights shape: (batch_size, sequence_length, 1) {}".format(attention_weights.shape))
+
+# decoder = Decoder(vocab_tar_size, embedding_dim, units, BATCH_SIZE)
+
+# sample_decoder_output, _, _ = decoder(tf.random.uniform((64, 1)),
+#                                       sample_hidden, sample_output)
+
+# print ('Decoder output shape: (batch_size, vocab size) {}'.format(sample_decoder_output.shape))
+
+# optimizer = tf.keras.optimizers.Adam()
+# loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
+#     from_logits=True, reduction='none')
+
+# checkpoint_dir = './training_checkpoints'
+# checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+# checkpoint = tf.train.Checkpoint(optimizer=optimizer,
+#                                  encoder=encoder,
+#                                  decoder=decoder)
+
+# for epoch in range(EPOCHS):
+#   start = time.time()
+
+#   enc_hidden = encoder.initialize_hidden_state()
+#   total_loss = 0
+
+#   for (batch, (inp, targ)) in enumerate(dataset.take(steps_per_epoch)):
+#     batch_loss = train_step(inp, targ, enc_hidden)
+#     total_loss += batch_loss
+
+#     if batch % 100 == 0:
+#         print('Epoch {} Batch {} Loss {:.4f}'.format(epoch + 1,
+#                                                      batch,
+#                                                      batch_loss.numpy()))
+#   # saving (checkpoint) the model every 2 epochs
+#   if (epoch + 1) % 2 == 0:
+#     checkpoint.save(file_prefix = checkpoint_prefix)
+
+#   print('Epoch {} Loss {:.4f}'.format(epoch + 1,
+#                                       total_loss / steps_per_epoch))
+#   print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
+
+# # restoring the latest checkpoint in checkpoint_dir
+# checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+
+# translate(u'hace mucho frio aqui.')
+# # Predicted translation: it s a lot of here . <end>
+# translate(u'esta es mi vida.')
+# # Predicted translation: this is my life . <end> 
+# translate(u'¿todavia estan en casa?')
+# # Predicted translation: are you still at home ? <end> 
+# # wrong translation
+# # translate(u'trata de averiguarlo.')
+# # Predicted translation: try to figure it out . <end> 

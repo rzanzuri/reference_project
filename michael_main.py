@@ -19,6 +19,29 @@ import Python_lib.read_html as read_html
 import re
 from Python_lib.textHandler import clean_hebrew_text_from_dir
 
+
+def preprocess_sentence(w):
+    # w = unicode_to_ascii(w.lower().strip())
+
+    # creating a space between a word and the punctuation following it
+    # eg: "he is a boy." => "he is a boy ."
+    # Reference:- https://stackoverflow.com/questions/3645931/python-padding-punctuation-with-white-spaces-keeping-punctuation
+    w = re.sub(r"([?.!,¿])", r" \1 ", w)
+    w = re.sub(r'[" "]+', " ", w)
+
+    # replacing everything with space except (a-z, A-Z, ".", "?", "!", ",")
+    if(any("\u0590" <= c <= "\u05EA" for c in w)):
+        w = re.sub(r"[^א-ת?.!,¿]+", " ", w)
+    else:
+        w = re.sub(r"[^a-zA-Z?.!,¿]+", " ", w)
+
+    w = w.rstrip().strip()
+
+    # adding a start and an end token to the sentence
+    # so that the model know when to start and stop predicting.
+    w = start_seq + ' ' + w + ' ' + end_seq
+    return w
+    
 def dror_task():
     from keras.models import Sequential
     from keras import layers
@@ -63,8 +86,6 @@ def find_similar(curpus_path, vec_model):
                             f.write(str(val) + " ")
                         f.write("\n")
                         
-
-
 def write_text_to_file_from_url(url, start, amount, website_name, html_part = ["p"]):
     for i in range(start, start + amount):
         try:
@@ -208,10 +229,17 @@ def create_ans_file(file_path, true_count, false_count, dest_file_path):
             f.write(final_sents[i])
             f.write(final_anses[i])
 
+def create_ans_for_rabanny_text(file_path):
+    with open(file_path,'r',encoding='utf-8') as rf:
+        with open(file_path + ".new", 'w', encoding='utf-8') as wf:
+            for line in rf.readlines():
+                wf.write(line.strip().replace('# ','').replace('$ ', '') + '\n')
+                wf.write(line.strip() + '\n')
 
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
+    create_ans_for_rabanny_text('./Data/RabannyText/RabannyText_3000_Sen.txt')
     # base_path = "C:\\hebrewNER-1.0.1-Win\\bin\\"
     # with open("./Data/HebrewText/HebrewText_3000_Sen.txt",'r',encoding='utf-8') as f:
     #     text = f.readlines()
@@ -231,7 +259,7 @@ if __name__ == "__main__":
     
     # create_ans_file("./Data/‏‏HebrewTextForNER/HebrewTextForNER_3000sen.ans", 550, 550 , "./Data/‏‏HebrewTextForNER/HebrewTextForNER.ans")
     # create_rand_sents()    
-    create_vec_model()
+    # create_vec_model()
     # dror_task()
     # clean_hebrew_text_from_dir("./Data/RabannyText/", "RabannyText.txt")
     # download_maariv_pages()
