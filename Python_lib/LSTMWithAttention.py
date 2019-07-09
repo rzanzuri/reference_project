@@ -1,7 +1,7 @@
 from tensorflow import keras
-from tensorflow.keras.layers import Dense, TimeDistributed, LSTMCell, RNN
+from tensorflow.python.keras.layers import Dense, TimeDistributed, LSTMCell, RNN
 from tensorflow.python.keras.utils import tf_utils
-from tensorflow.keras import backend as K
+from tensorflow.python.keras import backend as K
 
 # RNN "Cell" classes in Keras perform the actual data transformations at each timestep. Therefore, in order
 # to add attention to LSTM, we need to make a custom subclass of LSTMCell.
@@ -28,8 +28,8 @@ class AttentionLSTMCell(LSTMCell):
 
         # We will augment the input into LSTMCell by concatenating the context vector. Modify
         # input_shape to reflect this.
-        batch, input_dim = input_shape[0]
-        batch, timesteps, context_size = input_shape[-1]
+        batch, input_dim = input_shape
+        batch, context_size = input_shape
         lstm_input = (batch, input_dim + context_size)
 
         # The LSTMCell superclass expects no constant input, so strip that out.

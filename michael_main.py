@@ -177,7 +177,7 @@ def write_n_sentences(amount, src_file , dest_file):
     
     for j, line in enumerate(lines):
         for sent in line.split('.'):
-            if len(sent.split()) > 4:
+            if len(sent.split()) > 4  and len(sent.split()) <= 50:
                 sentences.append(sent.lstrip().rstrip() + ".")
 
     with open(dest_file,'w' , encoding = 'utf-8') as f:
@@ -188,14 +188,14 @@ def write_n_sentences(amount, src_file , dest_file):
             i+=1    
 
 def create_rand_sents():
-    t1  = Thread(target=write_n_sentences, args=(3000,"./Data/RabannyText/RabannyText.txt","./Data/RabannyText/RabannyText_3000_Sen.txt"))
-    t2  = Thread(target=write_n_sentences, args=(3000,"./Data/HebrewText/HebrewText.txt","./Data/HebrewText/HebrewText_3000_Sen.txt"))
+    t1  = Thread(target=write_n_sentences, args=(3000,"./Data/RabannyText/all.txt","./Data/RabannyText/RabannyText_3000_Sen.txt"))
+    # t2  = Thread(target=write_n_sentences, args=(3000,"./Data/HebrewText/HebrewText.txt","./Data/HebrewText/HebrewText_3000_Sen.txt"))
     
     t1.start()
-    t2.start()
+    # t2.start()
 
     t1.join()
-    t2.join()
+    # t2.join()
 
 def create_ans_file(file_path, true_count, false_count, dest_file_path):
     sents = []
@@ -241,7 +241,8 @@ def create_ans_for_rabanny_text(file_path):
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
-    create_ans_for_rabanny_text('./Data/RabannyText/RabannyText_3000_Sen.txt')
+    create_rand_sents()
+    # create_ans_for_rabanny_text('./Data/RabannyText/RabannyText_3000_Sen.txt')
     # base_path = "C:\\hebrewNER-1.0.1-Win\\bin\\"
     # with open("./Data/HebrewText/HebrewText_3000_Sen.txt",'r',encoding='utf-8') as f:
     #     text = f.readlines()
@@ -260,11 +261,11 @@ if __name__ == "__main__":
     
     
     # create_rand_sents()
-    vec_model = create_vec_model()
-    most_similar = vec_model.most_similar(positive=["נוסף", "ת"], topn = 10)
-    for sim_line in most_similar:
-        if sim_line[0] in vec_model.wv.vocab:
-            print(sim_line[0] + "\n" + str(sim_line[1]) + "\n")
+    # vec_model = create_vec_model()
+    # most_similar = vec_model.most_similar(positive=["נוסף", "ת"], topn = 10)
+    # for sim_line in most_similar:
+    #     if sim_line[0] in vec_model.wv.vocab:
+    #         print(sim_line[0] + "\n" + str(sim_line[1]) + "\n")
                 
 
 
