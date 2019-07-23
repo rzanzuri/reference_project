@@ -2,10 +2,10 @@ from keras.models import Sequential
 from keras import layers
 from keras.layers import Embedding, LSTM, Dense, Activation, Flatten, Bidirectional
 from keras.models import model_from_json
-import Python_lib.dataSets as dataSets
-import Python_lib.vectorsModel as vectorsModel
-import Python_lib.named_entity_recognotion as NER
-import Python_lib.textHandler as textHandler
+import MyLibs.dataSets as dataSets
+import MyLibs.vectorsModel as vectorsModel
+import MyLibs.named_entity_recognotion as NER
+import MyLibs.textHandler as textHandler
 import numpy as np
 import multiprocessing
 import logging
@@ -75,8 +75,8 @@ vec_model = vectorsModel.get_model_vectors(curpus_path, vec_model_root_path, win
 exit()
 sentences, answers = dataSets.get_sentences_and_answers(curpus_path, NER.is_ner_exsits, max_len_sent = max_len_sent, limit= limit)
 
-X_train, X_test = dataSets.get_data_set(sentences,vec_model, test_size)
-Y_train, Y_test = dataSets.get_data_set(answers, vec_model, test_size)
+X_train, X_test = dataSets.get_train_and_test_sets(sentences,vec_model, test_size)
+Y_train, Y_test = dataSets.get_train_and_test_sets(answers, vec_model, test_size)
 
 pretrained_weights = vec_model.wv.syn0
 vocab_size, emdedding_size = pretrained_weights.shape

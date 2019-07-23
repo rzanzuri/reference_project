@@ -1,7 +1,7 @@
-import Python_lib.dataSets as dataSets
-import Python_lib.vectorsModel as vectorsModel
-import Python_lib.named_entity_recognotion as NER
-import Python_lib.textHandler as textHandler
+import MyLibs.dataSets as dataSets
+import MyLibs.vectorsModel as vectorsModel
+import MyLibs.named_entity_recognotion as NER
+import MyLibs.textHandler as textHandler
 import numpy as np
 import multiprocessing
 import logging
@@ -14,10 +14,10 @@ from threading import Thread
 import os
 from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
-import Python_lib.read_html as read_html
+import MyLibs.read_html as read_html
 #from tika import parser
 import re
-from Python_lib.textHandler import clean_hebrew_text_from_dir
+from MyLibs.textHandler import clean_hebrew_text_from_dir
 
 
 def preprocess_sentence(w):
@@ -241,7 +241,15 @@ def create_ans_for_rabanny_text(file_path):
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
-    create_rand_sents()
+
+    with open("./Data/spa-eng/spa.txt",'r', encoding='utf-8') as rf:
+        with open("./Data/spa-eng/spa.ans",'w', encoding='utf-8') as wf:
+            lines = rf.readlines()
+            for line in lines:
+                line = line.split('\t')
+                wf.write(line[0].strip().rstrip() + "\n")
+                wf.write(line[1].strip().rstrip() + "\n")
+    # create_rand_sents()
     # create_ans_for_rabanny_text('./Data/RabannyText/RabannyText_3000_Sen.txt')
     # base_path = "C:\\hebrewNER-1.0.1-Win\\bin\\"
     # with open("./Data/HebrewText/HebrewText_3000_Sen.txt",'r',encoding='utf-8') as f:

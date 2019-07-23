@@ -1,11 +1,11 @@
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from tensorflow.keras.layers import LSTM, Dense, Embedding, Bidirectional, Concatenate
-from Python_lib.Encoder import Encoder as Encoder
-from Python_lib.Decoder import Decoder as Decoder
-from Python_lib.BahdanauAttention import BahdanauAttention as BahdanauAttention
-import Python_lib.dataSets as dataSets
-import Python_lib.vectorsModel as vectorsModel
+from MyLibs.Encoder import Encoder as Encoder
+from MyLibs.Decoder import Decoder as Decoder
+from MyLibs.BahdanauAttention import BahdanauAttention as BahdanauAttention
+import MyLibs.dataSets as dataSets
+import MyLibs.vectorsModel as vectorsModel
 
 import unicodedata
 import re
@@ -16,53 +16,36 @@ import datetime
 import multiprocessing
 
 start_run = datetime.datetime.now()
-print("start:", start_run)
+print("Start:", start_run)
 
-corpus_path = "./Data/RabannyText/"
-vec_model_root_path = "./VecModels/"
+corpus_path = "./Data/spa-eng/"
 
 start_seq = '<start>'
 end_seq = '<end>'
 start_ref = '<start_ref>'
-end_red = '<end_ref>'
+end_ref = '<end_ref>'
 
-iters = 6
-min_count = 60
-vec_size = 300 
-win_size = 10
+special_tags = [start_seq, end_seq,]
+# special_tags = [start_seq, end_seq, start_ref, end_ref]
 workers = multiprocessing.cpu_count() 
-epochs = 1
-num_examples = 1
+epochs = 10
+num_examples = 30000
+max_len_sent = 50
 test_size = 0.2
-max_len_sent = 100
-batch_size = 1
+batch_size = 64
 
+#gets/creates gensim vectors model of corpus
+vec_model = vectorsModel.get_model_vectors(corpus_path, min_count = 1, workers = workers, special_tags = special_tags)
+pretrained_weights, vocab_size, emdedding_size= vectorsModel.get_index_vectors_matrix(vec_model)
+sentences, answers = dataSets.get_sentences_and_answers(corpus_path, start_seq, end_seq, max_len_sent, num_examples)
 
-vec_model = vectorsModel.get_model_vectors(corpus_path, vec_model_root_path, win_size, iters, min_count, vec_size, workers)
-
-sent = (start_seq + ' ') * 30
-vec_model.build_vocab([sent.split()], update=True)
-
-sent = (end_seq + ' ')* 30
-vec_model.build_vocab([sent.split()], update=True)
-
-sent = (start_ref + ' ') * 30
-vec_model.build_vocab([sent.split()], update=True)
-
-sent = (end_red + ' ') * 30
-vec_model.build_vocab([sent.split()], update=True)
-
-sentences, answers = dataSets.get_sentences_and_answers(corpus_path, max_len_sent = max_len_sent, limit= num_examples)
-
-X_train, X_test = dataSets.get_data_set(sentences,vec_model, test_size)
-Y_train, Y_test = dataSets.get_data_set(answers, vec_model, test_size)
-
-pretrained_weights = vec_model.wv.syn0
-vocab_size, emdedding_size = pretrained_weights.shape
+#transform sentences and answers to idexes (in vocab) vectors, and split to trian and test sets
+X_train, X_test = dataSets.get_train_and_test_sets(sentences,vec_model, test_size)
+Y_train, Y_test = dataSets.get_train_and_test_sets(answers, vec_model, test_size)
 
 print('Result embedding shape:', pretrained_weights.shape)
-print('train_x shape:', X_train.shape)
-print('train_y shape:', Y_train.shape)
+print('X_train, X_test shape:', X_train.shape, X_test.shape)
+print('Y_train, Y_test shape:', Y_train.shape, Y_test.shape)
 
 steps_per_epoch = len(X_train)//batch_size
 units = emdedding_size
@@ -245,4 +228,12 @@ for epoch in range(epochs):
 # restoring the latest checkpoint in checkpoint_dir
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
-translate(u'וכן מתבאר מדברי הרדב"ז בתשובה ח"ז סימן ל"ב שהרמב"ם אוסר להתייחד עם אחותו')
+translate(u'hace mucho frio aqui.')
+# Predicted translation: it s very cold here . <end> 
+translate(u'esta es mi vida.')
+# Predicted translation: this is my life . <end> 
+translate(u'¿todavia estan en casa?')
+# Predicted translation: are you still at home ? <end> 
+# wrong translation
+translate(u'trata de averiguarlo.')
+# Predicted translation: try to figure it out . <end> 
