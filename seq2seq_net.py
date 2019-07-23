@@ -96,7 +96,7 @@ def train_step(inp, targ, forward_h, forward_c, backward_h, backward_c):
 def evaluate(sentence):
     attention_plot = np.zeros((max_length_targ, max_length_inp))
 
-    inputs = [vec_model.wv.vocab[i].index for i in sentence.split(' ')]
+    inputs = [vec_model.wv.vocab[i].index if i in vec_model.wv.vocab else 0 for i in sentence.split(' ')]
     inputs = tf.keras.preprocessing.sequence.pad_sequences([inputs],
                                                            maxlen=max_length_inp,
                                                            padding='post')
