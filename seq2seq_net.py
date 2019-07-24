@@ -31,11 +31,11 @@ end_ref = '<end_ref>'
 special_tags = [start_seq, end_seq]
 # special_tags = [start_seq, end_seq, start_ref, end_ref]
 workers = multiprocessing.cpu_count() 
-epochs = 10
-num_examples = 30000
+epochs = 1
+num_examples = 10
 max_len_sent = -1
 test_size = 0.2
-batch_size = 64
+batch_size = 1
 
 #gets/creates gensim vectors model of corpus
 vec_model = vectorsModel.get_model_vectors(corpus_path, min_count = 1, workers = workers, special_tags = special_tags)
@@ -212,7 +212,10 @@ optimizer = tf.keras.optimizers.Adam()
 loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
     from_logits=True, reduction='none')
 
-checkpoint_dir = './training_checkpoints'
+checkpoint_dir = os.path.join(corpus_path, 'training_checkpoints')
+if not os.path.exists(checkpoint_dir):
+  os.mkdir(checkpoint_dir)
+
 checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
 checkpoint = tf.train.Checkpoint(optimizer=optimizer,
                                  encoder=encoder,
