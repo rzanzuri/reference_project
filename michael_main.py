@@ -242,6 +242,18 @@ if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
 
+    with open("./Data/RabannyText/RabannyText.ans",'r', encoding='utf-8') as rf:
+        with open("./Data/RabannyText/RabannyText.ans.true_flase",'w', encoding='utf-8') as wf:
+            lines = rf.readlines()
+            for i, line in enumerate(lines):
+                if i%2:
+                    if '<start_ref>' in line:
+                        wf.write("1\n")
+                    else:
+                        wf.write("0\n")
+                else:
+                    wf.write(line)    
+                    
     with open("./Data/spa-eng/spa.txt",'r', encoding='utf-8') as rf:
         with open("./Data/spa-eng/spa.ans",'w', encoding='utf-8') as wf:
             lines = rf.readlines()

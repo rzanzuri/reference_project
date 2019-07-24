@@ -6,6 +6,7 @@ from MyLibs.Decoder import Decoder as Decoder
 from MyLibs.BahdanauAttention import BahdanauAttention as BahdanauAttention
 import MyLibs.dataSets as dataSets
 import MyLibs.vectorsModel as vectorsModel
+from sklearn.model_selection import train_test_split
 
 import unicodedata
 import re
@@ -19,18 +20,20 @@ start_run = datetime.datetime.now()
 print("Start:", start_run)
 
 corpus_path = "./Data/spa-eng/"
+# corpus_path = "./Data/heb-eng/"
+# corpus_path = "./Data/RabannyText/"
 
 start_seq = '<start>'
 end_seq = '<end>'
 start_ref = '<start_ref>'
 end_ref = '<end_ref>'
 
-special_tags = [start_seq, end_seq,]
+special_tags = [start_seq, end_seq]
 # special_tags = [start_seq, end_seq, start_ref, end_ref]
 workers = multiprocessing.cpu_count() 
 epochs = 10
 num_examples = 30000
-max_len_sent = 50
+max_len_sent = -1
 test_size = 0.2
 batch_size = 64
 
@@ -39,13 +42,18 @@ vec_model = vectorsModel.get_model_vectors(corpus_path, min_count = 1, workers =
 pretrained_weights, vocab_size, emdedding_size= vectorsModel.get_index_vectors_matrix(vec_model)
 sentences, answers = dataSets.get_sentences_and_answers(corpus_path, start_seq, end_seq, max_len_sent, num_examples)
 
+sentences_train, sentences_test, answers_train, answers_test = train_test_split(sentences, answers, test_size = test_size)
+
 #transform sentences and answers to idexes (in vocab) vectors, and split to trian and test sets
-X_train, X_test = dataSets.get_train_and_test_sets(sentences,vec_model, test_size)
-Y_train, Y_test = dataSets.get_train_and_test_sets(answers, vec_model, test_size)
+X_train = dataSets.get_data_sets(sentences_train, vec_model)
+Y_train = dataSets.get_data_sets(answers_train, vec_model)
+
+X_test = sentences_test
+Y_test = answers_test
 
 print('Result embedding shape:', pretrained_weights.shape)
-print('X_train, X_test shape:', X_train.shape, X_test.shape)
-print('Y_train, Y_test shape:', Y_train.shape, Y_test.shape)
+# print('X_train, X_test shape:', X_train.shape, X_test.shape)
+# print('Y_train, Y_test shape:', Y_train.shape, Y_test.shape)
 
 steps_per_epoch = len(X_train)//batch_size
 units = emdedding_size
@@ -93,17 +101,24 @@ def train_step(inp, targ, forward_h, forward_c, backward_h, backward_c):
 
   return batch_loss
 
+
+
+
 def evaluate(sentence):
     attention_plot = np.zeros((max_length_targ, max_length_inp))
 
-    inputs = [vec_model.wv.vocab[i].index if i in vec_model.wv.vocab else 0 for i in sentence.split(' ')]
-    inputs = tf.keras.preprocessing.sequence.pad_sequences([inputs],
-                                                           maxlen=max_length_inp,
-                                                           padding='post')
+    # x = [vec_model.wv.vocab[i].index if i in vec_model.wv.vocab else 0 for i in sentence.split(' ')]
+    # x = tf.keras.preprocessing.sequence.pad_sequences([x],
+    #                                                        maxlen=max_length_inp,
+    #                                                        padding='post')
+    inputs = dataSets.sentence_to_indexes(sentence,vec_model, max_length_inp)
     inputs = tf.convert_to_tensor(inputs)
 
     result = ''
-    forward_h = forward_c = backward_h = backward_c = tf.zeros((1, units))
+    forward_h  = tf.zeros((1, units))
+    forward_c  = tf.zeros((1, units))
+    backward_h = tf.zeros((1, units))
+    backward_c = tf.zeros((1, units))
 
     enc_out, enc_forward_h, enc_forward_c, enc_backward_h, enc_backward_c = encoder(inputs, forward_h, forward_c, backward_h, backward_c)
 
@@ -147,6 +162,7 @@ def plot_attention(attention, sentence, predicted_sentence):
     ax.set_xticklabels([''] + sentence, fontdict=fontdict, rotation=90)
     ax.set_yticklabels([''] + predicted_sentence, fontdict=fontdict)
 
+
     plt.show()
 
 def translate(sentence):
@@ -155,19 +171,18 @@ def translate(sentence):
     print('Input: %s' % (sentence))
     print('Predicted translation: {}'.format(result))
 
-    attention_plot = attention_plot[:len(result.split(' ')), :len(sentence.split(' '))]
-    plot_attention(attention_plot, sentence.split(' '), result.split(' '))
+    return result
+
+    # attention_plot = attention_plot[:len(result.split(' ')), :len(sentence.split(' '))]
+    # plot_attention(attention_plot, sentence.split(' '), result.split(' '))
 
 # Calculate max_length of the target tensors
-max_length_targ, max_length_inp = X_train.shape[1], Y_train.shape[1]
+max_length_inp, max_length_targ  = X_train.shape[1], Y_train.shape[1]
 
-
-dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train)).shuffle(len(X_train))
+dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train)).shuffle(batch_size)
 dataset = dataset.batch(batch_size, drop_remainder=True)
 
-
-example_input_batch, example_target_batch = next(iter(dataset))
-example_input_batch.shape, example_target_batch.shape
+example_input_batch, _ = next(iter(dataset))
 
 encoder = Encoder(vocab_inp_size, emdedding_size, pretrained_weights, max_length_inp ,units, batch_size)
 
@@ -228,12 +243,12 @@ for epoch in range(epochs):
 # restoring the latest checkpoint in checkpoint_dir
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
-translate(u'hace mucho frio aqui.')
-# Predicted translation: it s very cold here . <end> 
-translate(u'esta es mi vida.')
-# Predicted translation: this is my life . <end> 
-translate(u'¿todavia estan en casa?')
-# Predicted translation: are you still at home ? <end> 
-# wrong translation
-translate(u'trata de averiguarlo.')
-# Predicted translation: try to figure it out . <end> 
+for i, sent in enumerate(X_test[:10]):
+  print("----------------------------------------------------------")
+  result = start_seq + " " + translate(sent)
+  print('Expexted Result: %s' % (Y_test[i]))
+
+  if result == Y_test[i]:
+    print("Success :)")
+  else:
+    print("Not Success :(")

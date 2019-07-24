@@ -1,19 +1,20 @@
 import numpy as np
+import tensorflow as tf
 from os import listdir
 from os.path import exists, join , isfile, isdir
 import datetime
 import random
 
-def get_train_and_test_sets(sentences, vec_model, test_size):
-    print("Start get_train_and_test_sets function", datetime.datetime.now())
-    test_set_size = int(len(sentences) * test_size)
-    train_set_size = len(sentences) - test_set_size
-    max_sen_len = max_sentence_length(sentences)
+# def get_train_and_test_sets(sentences, vec_model, test_size):
+#     print("Start get_train_and_test_sets function", datetime.datetime.now())
+#     test_set_size = int(len(sentences) * test_size)
+#     train_set_size = len(sentences) - test_set_size
+#     max_sen_len = max_sentence_length(sentences)
 
-    train_set, test_set = create_data_sets(sentences, vec_model, train_set_size, test_set_size, max_sen_len)               
+#     train_set = create_data_sets(sentences, vec_model)               
   
-    print("End get_train_and_test_sets function", datetime.datetime.now())
-    return train_set, test_set     
+#     print("End get_train_and_test_sets function", datetime.datetime.now())
+#     return train_set, test_set     
 
 # def get_binary_data_and_test(sentences, model, data_set_size, max_sen_len):
 #     data = np.zeros([data_set_size], dtype=np.int32)
@@ -27,27 +28,31 @@ def get_train_and_test_sets(sentences, vec_model, test_size):
 
 #     return data, test 
 
-def create_data_sets(sentences, vec_model, train_set_size, test_set_size, max_sen_len):
-    train_set = np.zeros((train_set_size, max_sen_len), dtype=np.int32)
-    test_set  = np.zeros((test_set_size, max_sen_len) , dtype=np.int32)
-
+def get_data_sets(sentences, vec_model):
+    print("Start get_data_sets function", datetime.datetime.now())
+    data_set = []
     #creates train data set
-    for i, sentence in enumerate(sentences[:train_set_size]):
-        for j ,word in enumerate(sentence.split()):
+    for i, sentence in enumerate(sentences):
+        data_set.append(list())
+        for word in sentence.split():
             if word in vec_model.wv.vocab:
-                train_set[i,j] = vec_model.wv.vocab[word].index
+                data_set[i].append(vec_model.wv.vocab[word].index)
             else: 
-                train_set[i,j] = 0 #default index 0 for non-exsits in vec_model voacb
-    
-    for i, sentence in enumerate(sentences[train_set_size:]):
-        for j ,word in enumerate(sentence.split()):
-            if word in vec_model.wv.vocab:
-                test_set[i,j] = vec_model.wv.vocab[word].index
-            else:
-                test_set[i,j] = 0 #default index 0 for non-exsits in vec_model voacb             
+                data_set[i].append(0); #default index 0 for non-exsits in vec_model voacb
+    data_set = tf.keras.preprocessing.sequence.pad_sequences(data_set, padding='post')
 
-    return train_set, test_set 
+    print("End get_data_sets function", datetime.datetime.now())
+    return data_set 
 
+def sentence_to_indexes(sentence, vec_model, max_length_inp):
+  indexes = []
+  for word in sentence.split(' '):
+    if word in vec_model.wv.vocab:
+      indexes.append(vec_model.wv.vocab[word].index)
+    else:
+      indexes.append(0)
+
+  return tf.keras.preprocessing.sequence.pad_sequences([indexes], maxlen=max_length_inp, padding='post')
 
 def create_sentences_and_answers(file_path, get_ans_func, start_tag = "", end_tag = "", max_len_sent = -1, limit = -1):
     ans_file = file_path.strip(".txt") + ".ans"
