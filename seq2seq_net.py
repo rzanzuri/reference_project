@@ -19,9 +19,9 @@ import multiprocessing
 start_run = datetime.datetime.now()
 print("Start:", start_run)
 
-corpus_path = "./Data/spa-eng/"
+# corpus_path = "./Data/spa-eng/"
 # corpus_path = "./Data/heb-eng/"
-# corpus_path = "./Data/RabannyText/"
+corpus_path = "./Data/RabannyText/"
 
 start_seq = '<start>'
 end_seq = '<end>'
@@ -31,12 +31,21 @@ end_ref = '<end_ref>'
 special_tags = [start_seq, end_seq]
 # special_tags = [start_seq, end_seq, start_ref, end_ref]
 workers = multiprocessing.cpu_count() 
-epochs = 1
-num_examples = 10
+epochs = 50
+num_examples = 1000
 max_len_sent = -1
-test_size = 0.2
+test_size = 0.25
 batch_size = 1
-
+print("\n\n-----------------------------------------------------")
+print("Setup:")
+print("workers:", workers)
+print("epochs:", epochs)
+print("num_examples:", num_examples)
+print("max_len_sent:", max_len_sent)
+print("test_size:", test_size)
+print("batch_size:", batch_size)
+print("special_tags:", special_tags)
+print("-----------------------------------------------------\n\n")
 #gets/creates gensim vectors model of corpus
 vec_model = vectorsModel.get_model_vectors(corpus_path, min_count = 1, workers = workers, special_tags = special_tags)
 pretrained_weights, vocab_size, emdedding_size= vectorsModel.get_index_vectors_matrix(vec_model)
@@ -52,8 +61,8 @@ X_test = sentences_test
 Y_test = answers_test
 
 print('Result embedding shape:', pretrained_weights.shape)
-# print('X_train, X_test shape:', X_train.shape, X_test.shape)
-# print('Y_train, Y_test shape:', Y_train.shape, Y_test.shape)
+print('X_train, X_test length:',  len(X_train),  len(X_test))
+print('Y_train, Y_test length:',  len(Y_train),  len(Y_test))
 
 steps_per_epoch = len(X_train)//batch_size
 units = emdedding_size
@@ -245,13 +254,18 @@ for epoch in range(epochs):
 
 # restoring the latest checkpoint in checkpoint_dir
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
-
-for i, sent in enumerate(X_test[:10]):
+succ = 0
+not_succ = 0
+for i, sent in enumerate(X_test[:30]):
   print("----------------------------------------------------------")
   result = start_seq + " " + translate(sent)
   print('Expexted Result: %s' % (Y_test[i]))
 
   if result == Y_test[i]:
-    print("Success :)")
+    succ+=1
   else:
-    print("Not Success :(")
+    not_succ+=1
+
+print("Success prediction:", succ)
+print("Not success prediction:", not_succ)
+print("Accurcy:", (succ/(succ + not_succ)))
