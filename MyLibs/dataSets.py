@@ -28,7 +28,7 @@ import random
 
 #     return data, test 
 
-def get_data_sets(sentences, vec_model):
+def get_data_sets(sentences, vec_model, non_exists_idx_val = 0, pad_idx_val = 0):
     print("Start get_data_sets function", datetime.datetime.now())
     data_set = []
     #creates train data set
@@ -38,8 +38,8 @@ def get_data_sets(sentences, vec_model):
             if word in vec_model.wv.vocab:
                 data_set[i].append(vec_model.wv.vocab[word].index)
             else: 
-                data_set[i].append(-1); #default index -1 for non-exsits in vec_model voacb
-    data_set = tf.keras.preprocessing.sequence.pad_sequences(data_set, padding='post')
+                data_set[i].append(non_exists_idx_val); #default index for non-exsits in vec_model voacb
+    data_set = tf.keras.preprocessing.sequence.pad_sequences(data_set, padding='post', value=pad_idx_val)
 
     print("End get_data_sets function", datetime.datetime.now())
     return data_set 
@@ -52,7 +52,16 @@ def sentence_to_indexes(sentence, vec_model, max_length_inp):
     else:
       indexes.append(0)
 
-  return tf.keras.preprocessing.sequence.pad_sequences([indexes], maxlen=max_length_inp, padding='post')
+  return tf.keras.preprocessing.sequence.pad_sequences([indexes], maxlen=max_length_inp, padding='post', value=vec_model.wv.vocab['<end>'].index)
+
+def indexes_to_sentence(indexes, vec_model):
+  sentence = ''
+  for index in indexes:
+    if index >= 0:
+      sentence += vec_model.wv.index2word[index] + ' '
+    else:
+      sentence+= 'NONE '
+  return sentence
 
 def create_sentences_and_answers(file_path, get_ans_func, start_tag = "", end_tag = "", max_len_sent = -1, limit = -1):
     ans_file = file_path.strip(".txt") + ".ans"

@@ -19,7 +19,7 @@ import multiprocessing
 start_run = datetime.datetime.now()
 print("Start:", start_run)
 
-corpus_path = "./Data/spa-eng/"
+# corpus_path = "./Data/spa-eng/"
 # corpus_path = "./Data/heb-eng/"
 corpus_path = "./Data/RabannyText/"
 ans_kind = "RabannyText_mark.ans"
@@ -30,15 +30,17 @@ start_seq = '<start>'
 end_seq = '<end>'
 start_ref = '<start_ref>'
 end_ref = '<end_ref>'
+non_exists_word = 'NONE'
 
-special_tags = [start_seq, end_seq]
-special_tags = [start_seq, end_seq, start_ref, end_ref]
+special_tags = [start_seq, end_seq, non_exists_word]
+special_tags = [start_seq, end_seq, start_ref, end_ref, non_exists_word]
 workers = multiprocessing.cpu_count() 
-epochs = 50
-num_examples = -1
-max_len_sent = 10
-test_size = 0
-batch_size = 1
+epochs = 10
+num_examples =  1000
+max_len_sent = 50
+test_size = 0.2
+batch_size = 10
+
 print("\n\n-----------------------------------------------------")
 print("Setup:")
 print("corpus_path:", corpus_path)
@@ -51,34 +53,15 @@ print("batch_size:", batch_size)
 print("special_tags:", special_tags)
 print("-----------------------------------------------------\n\n")
 #gets/creates gensim vectors model of corpus
-vec_model = vectorsModel.get_model_vectors(corpus_path, min_count = 1, workers = workers, special_tags = special_tags)
+vec_model = vectorsModel.get_model_vectors(corpus_path, min_count = 30, workers = workers, special_tags = special_tags)
 pretrained_weights, vocab_size, emdedding_size = vectorsModel.get_index_vectors_matrix(vec_model)
 sentences, answers = dataSets.get_sentences_and_answers(os.path.join(corpus_path,ans_kind), start_seq, end_seq, max_len_sent, num_examples)
-
-tmp_sent = []
-tmp_ans = []
-for i in range(len(sentences)):
-  flag = True
-  for word in sentences[i].split(' '):
-    if word  not in vec_model.wv.vocab:
-      flag = False
-  for word in answers[i].split(' '):
-    if word  not in vec_model.wv.vocab:
-      flag = False
-  if flag:
-    tmp_sent.append(sentences[i])
-    tmp_ans.append(answers[i])
-    if len(tmp_sent) == 10:
-      break
-
-sentences = tmp_sent
-answers = tmp_ans
 
 sentences_train, sentences_test, answers_train, answers_test = train_test_split(sentences, answers, test_size = test_size)
 
 #transform sentences and answers to idexes (in vocab) vectors, and split to trian and test sets
-X_train = dataSets.get_data_sets(sentences_train, vec_model)
-Y_train = dataSets.get_data_sets(answers_train, vec_model)
+X_train = dataSets.get_data_sets(sentences_train, vec_model, non_exists_idx_val = vec_model.wv.vocab[non_exists_word].index, pad_idx_val = vec_model.wv.vocab[end_seq].index)
+Y_train = dataSets.get_data_sets(answers_train, vec_model, non_exists_idx_val = vec_model.wv.vocab[non_exists_word].index, pad_idx_val = vec_model.wv.vocab[end_seq].index)
 
 X_test = sentences_test
 Y_test = answers_test
@@ -93,14 +76,7 @@ vocab_inp_size = vocab_size
 vocab_tar_size = vocab_size
 path_to_file = corpus_path
 
-def indexes_to_str(indexes):
-  sent = ''
-  for index in indexes:
-    if index >= 0:
-      sent += vec_model.wv.index2word[index] + ' '
-    else:
-      sent+= 'NONE '
-  return sent
+
 
 def loss_function(real, pred):
   mask = tf.math.logical_not(tf.math.equal(real, 0))
@@ -217,12 +193,6 @@ def translate(sentence):
 # Calculate max_length of the target tensors
 max_length_inp, max_length_targ  = X_train.shape[1], Y_train.shape[1]
 
-for idx in range(len(X_train)):
-  print("--------------------------------------------------")
-  print(indexes_to_str(X_train[idx]))
-  print(indexes_to_str(Y_train[idx]))
-
-
 dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train)).shuffle(len(X_train))
 dataset = dataset.batch(batch_size, drop_remainder=True)
 
@@ -290,11 +260,10 @@ for epoch in range(epochs):
 # restoring the latest checkpoint in checkpoint_dir
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
-
-for i in range(len(sentences_train)):
-  print()
-  print("----------------------------------------------------------")
-  result = start_seq + " " + translate(sentences_train[i])
-  print('Input:           %s' % (sentences_train[i]))
-  print('Expexted Result: %s' % (answers_train[i]))
-  print('Actual Result:   %s' % (result))
+with open(os.path.join(corpus_path,"testing.result"), 'w', encoding = 'utf-8') as f:
+  for i in range(len(sentences_test)):
+    f.write("\n-------------------------------------------------------------------\n")
+    result = start_seq + " " + translate(sentences_test[i] + "\n")
+    f.write('Input:           %s' % (sentences_test[i])+ "\n")
+    f.write('Expexted Result: %s' % (answers_test[i])+ "\n")
+    f.write('Actual Result:   %s' % (result)+ "\n")
