@@ -19,9 +19,12 @@ import multiprocessing
 start_run = datetime.datetime.now()
 print("Start:", start_run)
 
-# corpus_path = "./Data/spa-eng/"
+corpus_path = "./Data/spa-eng/"
 # corpus_path = "./Data/heb-eng/"
 corpus_path = "./Data/RabannyText/"
+ans_kind = "RabannyText_mark.ans"
+# ans_kind = "RabannyText_true_false.ans"
+# ans_kind = ""
 
 start_seq = '<start>'
 end_seq = '<end>'
@@ -29,15 +32,16 @@ start_ref = '<start_ref>'
 end_ref = '<end_ref>'
 
 special_tags = [start_seq, end_seq]
-# special_tags = [start_seq, end_seq, start_ref, end_ref]
+special_tags = [start_seq, end_seq, start_ref, end_ref]
 workers = multiprocessing.cpu_count() 
 epochs = 50
-num_examples = 1000
-max_len_sent = -1
-test_size = 0.25
+num_examples = -1
+max_len_sent = 10
+test_size = 0
 batch_size = 1
 print("\n\n-----------------------------------------------------")
 print("Setup:")
+print("corpus_path:", corpus_path)
 print("workers:", workers)
 print("epochs:", epochs)
 print("num_examples:", num_examples)
@@ -48,8 +52,27 @@ print("special_tags:", special_tags)
 print("-----------------------------------------------------\n\n")
 #gets/creates gensim vectors model of corpus
 vec_model = vectorsModel.get_model_vectors(corpus_path, min_count = 1, workers = workers, special_tags = special_tags)
-pretrained_weights, vocab_size, emdedding_size= vectorsModel.get_index_vectors_matrix(vec_model)
-sentences, answers = dataSets.get_sentences_and_answers(corpus_path, start_seq, end_seq, max_len_sent, num_examples)
+pretrained_weights, vocab_size, emdedding_size = vectorsModel.get_index_vectors_matrix(vec_model)
+sentences, answers = dataSets.get_sentences_and_answers(os.path.join(corpus_path,ans_kind), start_seq, end_seq, max_len_sent, num_examples)
+
+tmp_sent = []
+tmp_ans = []
+for i in range(len(sentences)):
+  flag = True
+  for word in sentences[i].split(' '):
+    if word  not in vec_model.wv.vocab:
+      flag = False
+  for word in answers[i].split(' '):
+    if word  not in vec_model.wv.vocab:
+      flag = False
+  if flag:
+    tmp_sent.append(sentences[i])
+    tmp_ans.append(answers[i])
+    if len(tmp_sent) == 10:
+      break
+
+sentences = tmp_sent
+answers = tmp_ans
 
 sentences_train, sentences_test, answers_train, answers_test = train_test_split(sentences, answers, test_size = test_size)
 
@@ -69,6 +92,15 @@ units = emdedding_size
 vocab_inp_size = vocab_size
 vocab_tar_size = vocab_size
 path_to_file = corpus_path
+
+def indexes_to_str(indexes):
+  sent = ''
+  for index in indexes:
+    if index >= 0:
+      sent += vec_model.wv.index2word[index] + ' '
+    else:
+      sent+= 'NONE '
+  return sent
 
 def loss_function(real, pred):
   mask = tf.math.logical_not(tf.math.equal(real, 0))
@@ -109,9 +141,6 @@ def train_step(inp, targ, forward_h, forward_c, backward_h, backward_c):
   optimizer.apply_gradients(zip(gradients, variables))
 
   return batch_loss
-
-
-
 
 def evaluate(sentence):
     attention_plot = np.zeros((max_length_targ, max_length_inp))
@@ -177,8 +206,8 @@ def plot_attention(attention, sentence, predicted_sentence):
 def translate(sentence):
     result, sentence, attention_plot = evaluate(sentence)
 
-    print('Input: %s' % (sentence))
-    print('Predicted translation: {}'.format(result))
+    # print('Input: %s' % (sentence))
+    # print('Predicted translation: {}'.format(result))
 
     return result
 
@@ -188,7 +217,13 @@ def translate(sentence):
 # Calculate max_length of the target tensors
 max_length_inp, max_length_targ  = X_train.shape[1], Y_train.shape[1]
 
-dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train)).shuffle(batch_size)
+for idx in range(len(X_train)):
+  print("--------------------------------------------------")
+  print(indexes_to_str(X_train[idx]))
+  print(indexes_to_str(Y_train[idx]))
+
+
+dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train)).shuffle(len(X_train))
 dataset = dataset.batch(batch_size, drop_remainder=True)
 
 example_input_batch, _ = next(iter(dataset))
@@ -254,18 +289,12 @@ for epoch in range(epochs):
 
 # restoring the latest checkpoint in checkpoint_dir
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
-succ = 0
-not_succ = 0
-for i, sent in enumerate(X_test[:30]):
+
+
+for i in range(len(sentences_train)):
+  print()
   print("----------------------------------------------------------")
-  result = start_seq + " " + translate(sent)
-  print('Expexted Result: %s' % (Y_test[i]))
-
-  if result == Y_test[i]:
-    succ+=1
-  else:
-    not_succ+=1
-
-print("Success prediction:", succ)
-print("Not success prediction:", not_succ)
-print("Accurcy:", (succ/(succ + not_succ)))
+  result = start_seq + " " + translate(sentences_train[i])
+  print('Input:           %s' % (sentences_train[i]))
+  print('Expexted Result: %s' % (answers_train[i]))
+  print('Actual Result:   %s' % (result))

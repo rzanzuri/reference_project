@@ -38,7 +38,7 @@ def get_data_sets(sentences, vec_model):
             if word in vec_model.wv.vocab:
                 data_set[i].append(vec_model.wv.vocab[word].index)
             else: 
-                data_set[i].append(0); #default index 0 for non-exsits in vec_model voacb
+                data_set[i].append(-1); #default index -1 for non-exsits in vec_model voacb
     data_set = tf.keras.preprocessing.sequence.pad_sequences(data_set, padding='post')
 
     print("End get_data_sets function", datetime.datetime.now())
@@ -77,7 +77,7 @@ def read_sentences_and_answers(file_path, start_tag = "", end_tag = "", max_len_
     end_tag = end_tag if end_tag == "" else " " + end_tag
     
     sent_ans_pairs = list(zip(lines[0::2],lines[1::2])) # creats piars of even (sentences) ans odd (answers) line
-    random.shuffle(sent_ans_pairs)
+    # random.shuffle(sent_ans_pairs)
 
     for sentence, answer in sent_ans_pairs:
         sentence = sentence.strip().rstrip()
