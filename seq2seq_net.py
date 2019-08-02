@@ -19,12 +19,10 @@ import multiprocessing
 start_run = datetime.datetime.now()
 print("Start:", start_run)
 
-# corpus_path = "./Data/spa-eng/"
-# corpus_path = "./Data/heb-eng/"
-corpus_path = "./Data/RabannyText/"
-ans_kind = "RabannyText_mark.ans"
-# ans_kind = "RabannyText_true_false.ans"
-# ans_kind = ""
+corpus_path, ans_kind = "./Data/spa-eng/", ""
+# corpus_path, ans_kind = "./Data/heb-eng/", ""
+corpus_path, ans_kind = "./Data/RabannyText/", "RabannyText_mark.ans"
+# corpus_path, ans_kind = "./Data/RabannyText/", "RabannyText_true_false.ans"
 
 start_seq = '<start>'
 end_seq = '<end>'
@@ -35,11 +33,11 @@ non_exists_word = 'NONE'
 special_tags = [start_seq, end_seq, non_exists_word]
 special_tags = [start_seq, end_seq, start_ref, end_ref, non_exists_word]
 workers = multiprocessing.cpu_count() 
-epochs = 10
+epochs = 0
 num_examples =  1000
-max_len_sent = 50
+max_len_sent = 25
 test_size = 0.2
-batch_size = 10
+batch_size = 1
 
 print("\n\n-----------------------------------------------------")
 print("Setup:")
@@ -62,6 +60,10 @@ sentences_train, sentences_test, answers_train, answers_test = train_test_split(
 #transform sentences and answers to idexes (in vocab) vectors, and split to trian and test sets
 X_train = dataSets.get_data_sets(sentences_train, vec_model, non_exists_idx_val = vec_model.wv.vocab[non_exists_word].index, pad_idx_val = vec_model.wv.vocab[end_seq].index)
 Y_train = dataSets.get_data_sets(answers_train, vec_model, non_exists_idx_val = vec_model.wv.vocab[non_exists_word].index, pad_idx_val = vec_model.wv.vocab[end_seq].index)
+
+# for i in range(len(Y_train)):
+#   print(dataSets.indexes_to_sentence(X_train[i],vec_model))
+#   print(dataSets.indexes_to_sentence(Y_train[i],vec_model))
 
 X_test = sentences_test
 Y_test = answers_test
@@ -185,7 +187,7 @@ def translate(sentence):
     # print('Input: %s' % (sentence))
     # print('Predicted translation: {}'.format(result))
 
-    return result
+    return result.strip().rstrip()
 
     # attention_plot = attention_plot[:len(result.split(' ')), :len(sentence.split(' '))]
     # plot_attention(attention_plot, sentence.split(' '), result.split(' '))
@@ -261,9 +263,9 @@ for epoch in range(epochs):
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
 with open(os.path.join(corpus_path,"testing.result"), 'w', encoding = 'utf-8') as f:
-  for i in range(len(sentences_test)):
+  for i in range(len(sentences_train)):
     f.write("\n-------------------------------------------------------------------\n")
-    result = start_seq + " " + translate(sentences_test[i] + "\n")
-    f.write('Input:           %s' % (sentences_test[i])+ "\n")
-    f.write('Expexted Result: %s' % (answers_test[i])+ "\n")
+    result = start_seq + " " + translate(sentences_train[i] + "\n")
+    f.write('Input:           %s' % (sentences_train[i])+ "\n")
+    f.write('Expexted Result: %s' % (answers_train[i])+ "\n")
     f.write('Actual Result:   %s' % (result)+ "\n")
