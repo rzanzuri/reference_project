@@ -75,7 +75,7 @@ def create_sentences_and_answers(file_path, get_ans_func, start_tag = "", end_ta
 
     return read_sentences_and_answers(ans_file, start_tag, end_tag, max_len_sent, limit)        
 
-def read_sentences_and_answers(file_path, start_tag = "", end_tag = "", max_len_sent = -1, limit = -1):
+def read_sentences_and_answers(file_path, start_tag = "", end_tag = "", max_len_sent = -1, limit = -1, do_shuffle = 0):
 
     with open(file_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
@@ -86,7 +86,8 @@ def read_sentences_and_answers(file_path, start_tag = "", end_tag = "", max_len_
     end_tag = end_tag if end_tag == "" else " " + end_tag
     
     sent_ans_pairs = list(zip(lines[0::2],lines[1::2])) # creats piars of even (sentences) ans odd (answers) line
-    # random.shuffle(sent_ans_pairs)
+    if do_shuffle: 
+        random.shuffle(sent_ans_pairs)
 
     for sentence, answer in sent_ans_pairs:
         sentence = sentence.strip().rstrip()
