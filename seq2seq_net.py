@@ -271,9 +271,9 @@ with open(os.path.join(corpus_path,"train.result"), 'w', encoding = 'utf-8') as 
     f.write('Actual Result:   %s' % (result)+ "\n")
 
 with open(os.path.join(corpus_path,"test.result"), 'w', encoding = 'utf-8') as f:
-  for i in range(len(sentences_train)):
+  for i in range(len(sentences_test)):
     f.write("\n-------------------------------------------------------------------\n")
-    result = start_seq + " " + translate(sentences_train[i] + "\n")
-    f.write('Input:           %s' % (sentences_train[i])+ "\n")
-    f.write('Expexted Result: %s' % (answers_train[i])+ "\n")
+    result = start_seq + " " + translate(sentences_test[i] + "\n")
+    f.write('Input:           %s' % (sentences_test[i])+ "\n")
+    f.write('Expexted Result: %s' % (answers_test[i])+ "\n")
     f.write('Actual Result:   %s' % (result)+ "\n")
