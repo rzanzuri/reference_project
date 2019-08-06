@@ -145,15 +145,11 @@ def replace_idx_0_word(non_exists_word, vec_model):
     non_exists_word = non_exists_word
     non_exists_vec = np.zeros((vec_model.wv.syn0.shape[1]))
 
-    vec_model.wv.vocab[idx_0_idx] = non_exists_idx
+    vec_model.wv.vocab[idx_0_word].index  = non_exists_idx
     vec_model.wv.index2word[idx_0_idx] = non_exists_word
     vec_model.wv.syn0[idx_0_idx] = non_exists_vec
 
-    vec_model.wv.vocab[idx_0_word] = non_exists_idx
-    vec_model.wv.index2word[idx_0_idx] = non_exists_word
-    vec_model.wv.syn0[idx_0_idx] = non_exists_vec
-
-    vec_model.wv.vocab[non_exists_word] = non_exists_idx
+    vec_model.wv.vocab[non_exists_word].index = idx_0_idx
     vec_model.wv.index2word[non_exists_idx] = idx_0_word
     vec_model.wv.syn0[non_exists_idx] = idx_0_vec
 
