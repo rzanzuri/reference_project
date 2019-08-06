@@ -138,23 +138,23 @@ def create_special_tags_vectors(non_exists_word, special_tags ,vec_model):
     
 def replace_idx_0_word(non_exists_word, vec_model):
     idx_0_idx = 0
-    # idx_0_word = vec_model.wv.index2word[idx_0_idx]
-    # idx_0_vec = copy.deepcopy(vec_model.wv[idx_0_word])
+    idx_0_word = vec_model.wv.index2word[idx_0_idx]
+    idx_0_vec = copy.deepcopy(vec_model.wv[idx_0_word])
 
-    # non_exists_idx = vec_model.wv.vocab[non_exists_word].index
-    # non_exists_word = non_exists_word
-    # non_exists_vec = np.zeros((vec_model.wv.syn0.shape[1]))
+    non_exists_idx = vec_model.wv.vocab[non_exists_word].index
+    non_exists_word = non_exists_word
+    non_exists_vec = np.zeros((vec_model.wv.syn0.shape[1]))
 
-    # vec_model.wv.vocab[idx_0_idx] = non_exists_idx
-    # vec_model.wv.index2word[idx_0_idx] = non_exists_word
-    # vec_model.wv.syn0[idx_0_idx] = non_exists_vec
+    vec_model.wv.vocab[idx_0_idx] = non_exists_idx
+    vec_model.wv.index2word[idx_0_idx] = non_exists_word
+    vec_model.wv.syn0[idx_0_idx] = non_exists_vec
 
-    # vec_model.wv.vocab[idx_0_word] = non_exists_idx
-    # vec_model.wv.index2word[idx_0_idx] = non_exists_word
-    # vec_model.wv.syn0[idx_0_idx] = non_exists_vec
+    vec_model.wv.vocab[idx_0_word] = non_exists_idx
+    vec_model.wv.index2word[idx_0_idx] = non_exists_word
+    vec_model.wv.syn0[idx_0_idx] = non_exists_vec
 
-    # vec_model.wv.vocab[non_exists_word] = non_exists_idx
-    # vec_model.wv.index2word[non_exists_idx] = idx_0_word
-    # vec_model.wv.syn0[non_exists_idx] = idx_0_vec
+    vec_model.wv.vocab[non_exists_word] = non_exists_idx
+    vec_model.wv.index2word[non_exists_idx] = idx_0_word
+    vec_model.wv.syn0[non_exists_idx] = idx_0_vec
 
-    # vec_model.wv.init_sims()
+    vec_model.wv.init_sims()
