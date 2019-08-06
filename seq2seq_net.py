@@ -248,14 +248,16 @@ for epoch in range(epochs):
     total_loss += batch_loss
 
     if batch % 100 == 0:
-        print('Epoch {} Batch {} Loss {:.4f}'.format(epoch + 1,
+        print('Time: {} Epoch {} Batch {} Loss {:.4f}'.format(time.time(),
+                                                     epoch + 1,
                                                      batch,
                                                      batch_loss.numpy()))
   # saving (checkpoint) the model every 2 epochs
   if (epoch + 1) % 2 == 0:
     checkpoint.save(file_prefix = checkpoint_prefix)
 
-  print('Epoch {} Loss {:.4f}'.format(epoch + 1,
+  print('Time: {} Epoch {} Loss {:.4f}'.format(time.time(),
+                                      epoch + 1,
                                       total_loss / steps_per_epoch))
   print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
 
