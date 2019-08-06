@@ -32,14 +32,14 @@ start_ref = '<start_ref>'
 end_ref = '<end_ref>'
 non_exists_word = 'NONE'
 
-special_tags = [start_seq, end_seq, non_exists_word]
-special_tags = [start_seq, end_seq, start_ref, end_ref, non_exists_word]
+special_tags = [start_seq, end_seq]
+special_tags = [start_seq, end_seq, start_ref, end_ref]
 workers = multiprocessing.cpu_count() 
-epochs = 10
+epochs = 0
 num_examples =  1000
-max_len_sent = 50
-test_size = 0.2
-batch_size = 10
+max_len_sent = 10
+test_size = 0.25
+batch_size = 1
 
 print("\n\n-----------------------------------------------------")
 print("Setup:")
@@ -53,15 +53,15 @@ print("batch_size:", batch_size)
 print("special_tags:", special_tags)
 print("-----------------------------------------------------\n\n")
 #gets/creates gensim vectors model of corpus
-vec_model = vectorsModel.get_model_vectors(corpus_path, min_count = 30, workers = workers, special_tags = special_tags)
+vec_model = vectorsModel.get_model_vectors(corpus_path, min_count = 30, workers = workers, non_exists_word = non_exists_word, special_tags = special_tags)
 pretrained_weights, vocab_size, emdedding_size = vectorsModel.get_index_vectors_matrix(vec_model)
 sentences, answers = dataSets.get_sentences_and_answers(os.path.join(corpus_path,ans_kind), start_seq, end_seq, max_len_sent, num_examples)
 
 sentences_train, sentences_test, answers_train, answers_test = train_test_split(sentences, answers, test_size = test_size)
 
 #transform sentences and answers to idexes (in vocab) vectors, and split to trian and test sets
-X_train = dataSets.get_data_sets(sentences_train, vec_model, non_exists_idx_val = vec_model.wv.vocab[non_exists_word].index, pad_idx_val = vec_model.wv.vocab[end_seq].index)
-Y_train = dataSets.get_data_sets(answers_train, vec_model, non_exists_idx_val = vec_model.wv.vocab[non_exists_word].index, pad_idx_val = vec_model.wv.vocab[end_seq].index)
+X_train = dataSets.get_data_sets(sentences_train, vec_model)
+Y_train = dataSets.get_data_sets(answers_train, vec_model)
 
 X_test = sentences_test
 Y_test = answers_test
@@ -260,8 +260,16 @@ for epoch in range(epochs):
 # restoring the latest checkpoint in checkpoint_dir
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
-with open(os.path.join(corpus_path,"testing.result"), 'w', encoding = 'utf-8') as f:
-  for i in range(len(sentences_test)):
+with open(os.path.join(corpus_path,"train.result"), 'w', encoding = 'utf-8') as f:
+  for i in range(len(sentences_train)):
+    f.write("\n-------------------------------------------------------------------\n")
+    result = start_seq + " " + translate(sentences_train[i] + "\n")
+    f.write('Input:           %s' % (sentences_train[i])+ "\n")
+    f.write('Expexted Result: %s' % (answers_train[i])+ "\n")
+    f.write('Actual Result:   %s' % (result)+ "\n")
+
+with open(os.path.join(corpus_path,"test.result"), 'w', encoding = 'utf-8') as f:
+  for i in range(len(sentences_train)):
     f.write("\n-------------------------------------------------------------------\n")
     result = start_seq + " " + translate(sentences_test[i] + "\n")
     f.write('Input:           %s' % (sentences_test[i])+ "\n")
