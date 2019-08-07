@@ -19,7 +19,7 @@ import multiprocessing
 start_run = datetime.datetime.now()
 print("Start:", start_run)
 
-corpus_path, ans_kind = "./Data/spa-eng/", ""
+# corpus_path, ans_kind = "./Data/spa-eng/", ""
 # corpus_path, ans_kind = "./Data/heb-eng/", ""
 corpus_path, ans_kind = "./Data/RabannyText/", "RabannyText_mark.ans"
 # corpus_path, ans_kind = "./Data/RabannyText/", "RabannyText_true_false.ans"
@@ -30,14 +30,15 @@ start_ref = '<start_ref>'
 end_ref = '<end_ref>'
 non_exists_word = 'NONE'
 
-special_tags = [start_seq, end_seq]
+# special_tags = [start_seq, end_seq]
 special_tags = [start_seq, end_seq, start_ref, end_ref]
 workers = multiprocessing.cpu_count() 
-epochs = 0
+epochs = 50
 num_examples =  1000
 max_len_sent = 25
 test_size = 0.25
 batch_size = 1
+do_shuffle = 0
 
 print("\n\n-----------------------------------------------------")
 print("Setup:")
@@ -49,11 +50,13 @@ print("max_len_sent:", max_len_sent)
 print("test_size:", test_size)
 print("batch_size:", batch_size)
 print("special_tags:", special_tags)
+print("non_exists_word:", non_exists_word)
+print("do_shuffle:", do_shuffle)
 print("-----------------------------------------------------\n\n")
 #gets/creates gensim vectors model of corpus
 vec_model = vectorsModel.get_model_vectors(corpus_path, min_count = 30, workers = workers, non_exists_word = non_exists_word, special_tags = special_tags)
 pretrained_weights, vocab_size, emdedding_size = vectorsModel.get_index_vectors_matrix(vec_model)
-sentences, answers = dataSets.get_sentences_and_answers(os.path.join(corpus_path,ans_kind), start_seq, end_seq, max_len_sent, num_examples)
+sentences, answers = dataSets.get_sentences_and_answers(os.path.join(corpus_path,ans_kind), start_seq, end_seq, max_len_sent, num_examples, do_shuffle)
 
 sentences_train, sentences_test, answers_train, answers_test = train_test_split(sentences, answers, test_size = test_size)
 
@@ -248,7 +251,7 @@ for epoch in range(epochs):
     total_loss += batch_loss
 
     if batch % 100 == 0:
-        print('Time: {} Epoch {} Batch {} Loss {:.4f}'.format(time.time(),
+        print('Time: {} Epoch {} Batch {} Loss {:.4f}'.format(datetime.datetime.now(),
                                                      epoch + 1,
                                                      batch,
                                                      batch_loss.numpy()))
@@ -256,7 +259,7 @@ for epoch in range(epochs):
   if (epoch + 1) % 2 == 0:
     checkpoint.save(file_prefix = checkpoint_prefix)
 
-  print('Time: {} Epoch {} Loss {:.4f}'.format(time.time(),
+  print('Time: {} Epoch {} Loss {:.4f}'.format(datetime.datetime.now(),
                                       epoch + 1,
                                       total_loss / steps_per_epoch))
   print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))

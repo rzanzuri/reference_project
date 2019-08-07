@@ -63,7 +63,7 @@ def indexes_to_sentence(indexes, vec_model):
       sentence+= 'NONE '
   return sentence
 
-def create_sentences_and_answers(file_path, get_ans_func, start_tag = "", end_tag = "", max_len_sent = -1, limit = -1):
+def create_sentences_and_answers(file_path, get_ans_func, start_tag = "", end_tag = "", max_len_sent = -1, limit = -1, do_shuffle = 0):
     ans_file = file_path.strip(".txt") + ".ans"
     
     with open(file_path, 'r', encoding='utf-8') as rf:
@@ -73,7 +73,7 @@ def create_sentences_and_answers(file_path, get_ans_func, start_tag = "", end_ta
                 wf.write(sentence.strip().rstrip() + "\n")
                 wf.write(answer.strip().rstrip() + "\n")
 
-    return read_sentences_and_answers(ans_file, start_tag, end_tag, max_len_sent, limit)        
+    return read_sentences_and_answers(ans_file, start_tag, end_tag, max_len_sent, limit, do_shuffle)        
 
 def read_sentences_and_answers(file_path, start_tag = "", end_tag = "", max_len_sent = -1, limit = -1, do_shuffle = 0):
 
@@ -102,7 +102,7 @@ def read_sentences_and_answers(file_path, start_tag = "", end_tag = "", max_len_
 
     return sentences, answers    
 
-def get_sentences_and_answers(src_path, start_tag = "", end_tag = "", max_len_sent = -1, limit = -1, get_answer_func = None):
+def get_sentences_and_answers(src_path, start_tag = "", end_tag = "", max_len_sent = -1, limit = -1, do_shuffle = 0, get_answer_func = None):
     print("Start get_sentences_and_answers function", datetime.datetime.now())
     src_file = None
     if isdir(src_path):
@@ -115,7 +115,7 @@ def get_sentences_and_answers(src_path, start_tag = "", end_tag = "", max_len_se
         return None, None
 
     if exists(src_file):
-        sentences, answers = read_sentences_and_answers(src_file, start_tag, end_tag, max_len_sent, limit)
+        sentences, answers = read_sentences_and_answers(src_file, start_tag, end_tag, max_len_sent, limit, do_shuffle)
     else:
         sentences, answers = create_sentences_and_answers(src_file, get_answer_func, start_tag, end_tag, max_len_sent, limit)
 
