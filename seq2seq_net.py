@@ -33,28 +33,17 @@ non_exists_word = 'NONE'
 # special_tags = [start_seq, end_seq]
 special_tags = [start_seq, end_seq, start_ref, end_ref]
 workers = multiprocessing.cpu_count() 
-epochs = 50
+epochs = 100
 num_examples =  1000
 max_len_sent = 25
 test_size = 0.25
 batch_size = 1
 do_shuffle = 0
 
-print("\n\n-----------------------------------------------------")
-print("Setup:")
-print("corpus_path:", corpus_path)
-print("workers:", workers)
-print("epochs:", epochs)
-print("num_examples:", num_examples)
-print("max_len_sent:", max_len_sent)
-print("test_size:", test_size)
-print("batch_size:", batch_size)
-print("special_tags:", special_tags)
-print("non_exists_word:", non_exists_word)
-print("do_shuffle:", do_shuffle)
-print("-----------------------------------------------------\n\n")
+print_setup()
+
 #gets/creates gensim vectors model of corpus
-vec_model = vectorsModel.get_model_vectors(corpus_path, min_count = 30, workers = workers, non_exists_word = non_exists_word, special_tags = special_tags)
+vec_model = vectorsModel.get_model_vectors(corpus_path, iters= 50, min_count = 40, workers = workers, non_exists_word = non_exists_word, special_tags = special_tags)
 pretrained_weights, vocab_size, emdedding_size = vectorsModel.get_index_vectors_matrix(vec_model)
 sentences, answers = dataSets.get_sentences_and_answers(os.path.join(corpus_path,ans_kind), start_seq, end_seq, max_len_sent, num_examples, do_shuffle)
 
@@ -82,6 +71,34 @@ vocab_tar_size = vocab_size
 path_to_file = corpus_path
 
 
+def print_setup():
+  print("\n\n-----------------------------------------------------")
+  print("Setup:")
+  print("corpus_path:", corpus_path)
+  print("workers:", workers)
+  print("epochs:", epochs)
+  print("num_examples:", num_examples)
+  print("max_len_sent:", max_len_sent)
+  print("test_size:", test_size)
+  print("batch_size:", batch_size)
+  print("special_tags:", special_tags)
+  print("non_exists_word:", non_exists_word)
+  print("do_shuffle:", do_shuffle)
+  print("-----------------------------------------------------\n\n")
+  with open(os.path.join(corpus_path,"setup.txt"), 'w', encoding = 'utf-8') as f:
+      f.write("\n\n-----------------------------------------------------\n")
+      f.write("Setup:\n")
+      f.write("corpus_path:" + corpus_path + "\n")
+      f.write("workers:" + str(workers) + "\n")
+      f.write("epochs:"+ str(epochs) + "\n")
+      f.write("num_examples:" + str(num_examples) + "\n")
+      f.write("max_len_sent:" + str(max_len_sent) + "\n")
+      f.write("test_size:" + str(test_size) + "\n")
+      f.write("batch_size:" + str(batch_size) + "\n")
+      f.write("special_tags:" + str(special_tags) + "\n")
+      f.write("non_exists_word:" + non_exists_word + "\n")
+      f.write("do_shuffle:"+ str(do_shuffle) + "\n")
+      f.write("-----------------------------------------------------\n\n")
 
 def loss_function(real, pred):
   mask = tf.math.logical_not(tf.math.equal(real, 0))
@@ -169,7 +186,6 @@ def evaluate(sentence):
     return result, sentence, attention_plot
 
 # function for plotting the attention weights
-# function for plotting the attention weights
 def plot_attention(attention, sentence, predicted_sentence):
     # print("plot_attention attention:", attention)
     fig = plt.figure(figsize=(10,10))
@@ -194,6 +210,103 @@ def translate(sentence):
 
     # attention_plot = attention_plot[:len(result.split(' ')), :len(sentence.split(' '))]
     # plot_attention(attention_plot, sentence.split(' '), result.split(' '))
+    # storing the attention weights to plot later on
+
+
+def get_indexes(sentence, start_tag, end_tag):
+  my_list = sentence.split()
+  last = ""
+  indexes_start = []
+  indexes_end = []
+  missed = 0
+  for i, element in enumerate(my_list):
+      if element == start_tag:
+          if last == start_tag:
+              indexes_end.append(-1)
+              missed += 1
+          indexes_start.append(i - len(indexes_start) - len(indexes_end) + missed)
+          last = start_tag
+      elif element == end_tag:
+          if last == end_tag:
+              indexes_start.append(-1)
+              missed += 1
+          indexes_end.append(i - len(indexes_start) - len(indexes_end) + missed)
+          last = end_tag
+
+  if len(indexes_start) > len(indexes_end):
+      for i in range(len(indexes_start) - len(indexes_end)):
+          indexes_end.append(-1)
+
+  if len(indexes_end) > len(indexes_start):
+      for i in range(len(indexes_end) - len(indexes_start)):
+          indexes_start.append(-1)
+
+  return indexes_start, indexes_end
+
+def get_grade(index_a, index_b, length):
+  if index_a == -1 or index_b == -1: return 1
+  grade = abs(index_a - index_b)
+  grade = grade / length
+  return grade
+
+def get_qualtiy(excepted, results, start_tag, end_tag):
+  scores = []
+
+  if not is_same_sentence(excepted, results, start_tag, end_tag):
+    return 0.0
+  if not is_contanins_ref(excepted,start_tag, end_tag):
+    return get_smilarity_quality(excepted, results, start_tag, end_tag)
+  
+  excepted_indexes_start, excepted_indexes_end = get_indexes(excepted, start_tag, end_tag)
+  results_indexes_start, results_indexes_end = get_indexes(results, start_tag, end_tag)
+
+  while len(results_indexes_start) > len(excepted_indexes_start) and -1 in results_indexes_start:
+      results_indexes_start.remove(-1)
+  while len(results_indexes_end) > len(excepted_indexes_end) and -1 in results_indexes_end:
+      results_indexes_end.remove(-1)
+  for index in excepted_indexes_start[:]:
+      if index in results_indexes_start:
+          excepted_indexes_start.remove(index)
+          results_indexes_start.remove(index)
+          scores.append(0)
+  for index in excepted_indexes_end[:]:
+      if index in results_indexes_end:
+          excepted_indexes_end.remove(index)
+          results_indexes_end.remove(index)
+          scores.append(0)
+  for i in range(max(len(excepted_indexes_start), len(results_indexes_start))):
+      if len(excepted_indexes_start) > 0 and len(results_indexes_start) > 0:
+          scores.append(get_grade(excepted_indexes_start.pop(), results_indexes_start.pop() , len(excepted.split())))
+      else:
+          scores.append(1)
+
+  for i in range(max(len(excepted_indexes_end), len(results_indexes_end))):
+      if len(excepted_indexes_end) > 0 and len(results_indexes_end) > 0:
+          scores.append(get_grade(excepted_indexes_end.pop(), results_indexes_end.pop() , len(excepted.split())))
+      else:
+          scores.append(1)
+
+  score = 0
+  for s in scores:
+      score += s
+  score /= len(scores)
+  score = 1 - score
+  return score * get_smilarity_quality(excepted, results, start_tag, end_tag)
+
+def is_same_sentence(excepted, result, start_tag, end_tag, accuracy = 0.75):
+    return get_smilarity_quality(excepted, result, start_tag, end_tag) >= accuracy
+
+def get_smilarity_quality(excepted, result, start_tag, end_tag):
+    total_words = excepted.replace(start_tag,'').replace(end_tag,'').strip().rstrip().split(' ')
+    counter = 0
+    for word in total_words:
+        if word in result:
+          counter += 1
+    
+    return (counter / len(total_words))
+
+def is_contanins_ref(sentence, start_tag, end_tag):
+    return start_tag in sentence and end_tag in sentence
 
 # Calculate max_length of the target tensors
 max_length_inp, max_length_targ  = X_train.shape[1], Y_train.shape[1]
@@ -267,18 +380,36 @@ for epoch in range(epochs):
 # restoring the latest checkpoint in checkpoint_dir
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
+
+
 with open(os.path.join(corpus_path,"train.result"), 'w', encoding = 'utf-8') as f:
+  qualtiy_res = []
   for i in range(len(sentences_train)):
-    f.write("\n-------------------------------------------------------------------\n")
-    result = start_seq + " " + translate(sentences_train[i] + "\n")
-    f.write('Input:           %s' % (sentences_train[i])+ "\n")
-    f.write('Expexted Result: %s' % (answers_train[i])+ "\n")
-    f.write('Actual Result:   %s' % (result)+ "\n")
+      f.write("\n-------------------------------------------------------------------\n")
+      result = start_seq + " " + translate(sentences_train[i] + "\n")
+      accuracy = get_qualtiy(answers_train[i], result, start_ref, end_ref)
+      qualtiy_res.append(accuracy)
+      f.write('Input:           %s' % (sentences_train[i])+ "\n")
+      f.write('Expexted Result: %s' % (answers_train[i])+ "\n")
+      f.write('Actual Result:   %s' % (result)+ "\n")
+      f.write('Accuracy:        %s' % (accuracy)+ "\n")
+
+  f.write("\n-------------------------------------------------------------------\n")
+  f.write('Toatl Accuracy:   %s' % (sum(qualtiy_res) / len(qualtiy_res))+ "\n")    
+  print("Toatl accuracy for trian data is", (sum(qualtiy_res) / len(qualtiy_res)))    
 
 with open(os.path.join(corpus_path,"test.result"), 'w', encoding = 'utf-8') as f:
+  qualtiy_res = []
   for i in range(len(sentences_test)):
-    f.write("\n-------------------------------------------------------------------\n")
-    result = start_seq + " " + translate(sentences_test[i] + "\n")
-    f.write('Input:           %s' % (sentences_test[i])+ "\n")
-    f.write('Expexted Result: %s' % (answers_test[i])+ "\n")
-    f.write('Actual Result:   %s' % (result)+ "\n")
+      f.write("\n-------------------------------------------------------------------\n")
+      result = start_seq + " " + translate(sentences_test[i] + "\n")
+      accuracy = get_qualtiy(answers_test[i], result, start_ref, end_ref)
+      qualtiy_res.append(accuracy)    
+      f.write('Input:           %s' % (sentences_test[i])+ "\n")
+      f.write('Expexted Result: %s' % (answers_test[i])+ "\n")
+      f.write('Actual Result:   %s' % (result)+ "\n")
+      f.write('Accuracy:        %s' % (accuracy)+ "\n")
+
+  f.write("\n-------------------------------------------------------------------\n")
+  f.write('Toatl Accuracy:   %s' % (sum(qualtiy_res) / len(qualtiy_res))+ "\n")    
+  print("Toatl accuracy for test data is", (sum(qualtiy_res) / len(qualtiy_res)))    
