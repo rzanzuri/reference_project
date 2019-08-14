@@ -40,7 +40,19 @@ test_size = 0.25
 batch_size = 1
 do_shuffle = 0
 
-print_setup()
+print("\n\n-----------------------------------------------------")
+print("Setup:")
+print("corpus_path:", corpus_path)
+print("workers:", workers)
+print("epochs:", epochs)
+print("num_examples:", num_examples)
+print("max_len_sent:", max_len_sent)
+print("test_size:", test_size)
+print("batch_size:", batch_size)
+print("special_tags:", special_tags)
+print("non_exists_word:", non_exists_word)
+print("do_shuffle:", do_shuffle)
+print("-----------------------------------------------------\n\n")
 
 #gets/creates gensim vectors model of corpus
 vec_model = vectorsModel.get_model_vectors(corpus_path, iters= 50, min_count = 40, workers = workers, non_exists_word = non_exists_word, special_tags = special_tags)
@@ -71,20 +83,7 @@ vocab_tar_size = vocab_size
 path_to_file = corpus_path
 
 
-def print_setup():
-  print("\n\n-----------------------------------------------------")
-  print("Setup:")
-  print("corpus_path:", corpus_path)
-  print("workers:", workers)
-  print("epochs:", epochs)
-  print("num_examples:", num_examples)
-  print("max_len_sent:", max_len_sent)
-  print("test_size:", test_size)
-  print("batch_size:", batch_size)
-  print("special_tags:", special_tags)
-  print("non_exists_word:", non_exists_word)
-  print("do_shuffle:", do_shuffle)
-  print("-----------------------------------------------------\n\n")
+def print_setup_file():
   with open(os.path.join(corpus_path,"setup.txt"), 'w', encoding = 'utf-8') as f:
       f.write("\n\n-----------------------------------------------------\n")
       f.write("Setup:\n")
@@ -381,6 +380,7 @@ for epoch in range(epochs):
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
 
+print_setup_file()
 
 with open(os.path.join(corpus_path,"train.result"), 'w', encoding = 'utf-8') as f:
   qualtiy_res = []
