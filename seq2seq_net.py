@@ -40,6 +40,7 @@ max_len_sent = 25
 test_size = 0.25
 batch_size = 1
 do_shuffle = 0
+min_accuracy = 0.75
 
 print("\n\n-----------------------------------------------------")
 print("Setup:")
@@ -53,6 +54,7 @@ print("batch_size:", batch_size)
 print("special_tags:", special_tags)
 print("non_exists_word:", non_exists_word)
 print("do_shuffle:", do_shuffle)
+print("min_accuracy:", min_accuracy)
 print("-----------------------------------------------------\n\n")
 
 #gets/creates gensim vectors model of corpus
@@ -88,16 +90,17 @@ def print_setup_file():
   with open(os.path.join(corpus_path,"setup.txt"), 'w', encoding = 'utf-8') as f:
       f.write("\n\n-----------------------------------------------------\n")
       f.write("Setup:\n")
-      f.write("corpus_path:" + corpus_path + "\n")
-      f.write("workers:" + str(workers) + "\n")
-      f.write("epochs:"+ str(epochs) + "\n")
-      f.write("num_examples:" + str(num_examples) + "\n")
-      f.write("max_len_sent:" + str(max_len_sent) + "\n")
-      f.write("test_size:" + str(test_size) + "\n")
-      f.write("batch_size:" + str(batch_size) + "\n")
-      f.write("special_tags:" + str(special_tags) + "\n")
-      f.write("non_exists_word:" + non_exists_word + "\n")
-      f.write("do_shuffle:"+ str(do_shuffle) + "\n")
+      f.write("corpus_path: " + corpus_path + "\n")
+      f.write("workers: " + str(workers) + "\n")
+      f.write("epochs: "+ str(epochs) + "\n")
+      f.write("num_examples: " + str(num_examples) + "\n")
+      f.write("max_len_sent: " + str(max_len_sent) + "\n")
+      f.write("test_size :" + str(test_size) + "\n")
+      f.write("batch_size: " + str(batch_size) + "\n")
+      f.write("special_tags: " + str(special_tags) + "\n")
+      f.write("non_exists_word: " + non_exists_word + "\n")
+      f.write("do_shuffle: "+ str(do_shuffle) + "\n")
+      f.write("min_accuracy: "+ str(min_accuracy) + "\n")
       f.write("-----------------------------------------------------\n\n")
 
 def loss_function(real, pred):
