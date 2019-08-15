@@ -8,6 +8,7 @@ import MyLibs.dataSets as dataSets
 import MyLibs.vectorsModel as vectorsModel
 from MyLibs.accurcy_calculator import get_accurcy, get_reference_accurcy, get_total_accurcy, get_total_ref_accurcy
 from sklearn.model_selection import train_test_split
+from termcolor import colored
 
 import unicodedata
 import re
@@ -406,8 +407,8 @@ with open(os.path.join(corpus_path,"train.result"), 'w', encoding = 'utf-8') as 
   f.write("\n-------------------------------------------------------------------\n")
   f.write('Toatl Reference Accuracy: %s' % (get_total_ref_accurcy(ref_accuracy_res))+ "\n") 
   f.write('Toatl Accuracy:           %s' % (get_total_accurcy(accuracy_res))+ "\n")
-  print("Toatl reference accuracy for test train is", (get_total_ref_accurcy(ref_accuracy_res)))   
-  print("Toatl accuracy for train data is", (get_total_accurcy(accuracy_res)))    
+  print("Toatl reference accuracy for train data is", (get_total_ref_accurcy(ref_accuracy_res)))   
+  print(colored("Toatl accuracy for train data is" ,'green') , colored(get_total_accurcy(accuracy_res),'green'))   
 
 with open(os.path.join(corpus_path,"test.result"), 'w', encoding = 'utf-8') as f:
   accuracy_res = []
@@ -429,5 +430,5 @@ with open(os.path.join(corpus_path,"test.result"), 'w', encoding = 'utf-8') as f
   f.write("\n-------------------------------------------------------------------\n")
   f.write('Toatl Reference Accuracy: %s' % (get_total_ref_accurcy(ref_accuracy_res))+ "\n") 
   f.write('Toatl Accuracy:           %s' % (get_total_accurcy(accuracy_res))+ "\n")
-  print("Toatl reference accuracy for test train is", (get_total_ref_accurcy(ref_accuracy_res)))   
-  print("Toatl accuracy for test data is", (get_total_accurcy(accuracy_res)))   
+  print("Toatl reference accuracy for test data is", (get_total_ref_accurcy(ref_accuracy_res)))   
+  print(colored("Toatl accuracy for test data is" ,'green') , colored(get_total_accurcy(accuracy_res),'green'))   

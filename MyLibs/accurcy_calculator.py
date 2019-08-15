@@ -103,7 +103,7 @@ def get_reference_accurcy(excepted, results, start_tag, end_tag, special_tags = 
         else:
             scores.append(1)
 
-    score = 0
+    score = 0.0
     for s in scores:
         score += s
     if  len(scores) > 0: score /= len(scores)
@@ -128,7 +128,7 @@ def does_check_reference(sentence, start_tag, end_tag, similarity ,accuracy):
 def get_total_accurcy(accurcy_list):
     if len(accurcy_list) > 0:
         return (sum(accurcy_list) / len(accurcy_list))
-    return 0
+    return 0.0
 
 def get_total_ref_accurcy(accurcy_list):
     total_acc = 0
@@ -140,5 +140,5 @@ def get_total_ref_accurcy(accurcy_list):
             sum_acc += acc
 
     if total_acc == 0:
-        return 0            
+        return 0.0           
     return (sum_acc / total_acc)
