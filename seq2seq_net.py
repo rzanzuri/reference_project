@@ -6,6 +6,7 @@ from MyLibs.Decoder import Decoder as Decoder
 from MyLibs.BahdanauAttention import BahdanauAttention as BahdanauAttention
 import MyLibs.dataSets as dataSets
 import MyLibs.vectorsModel as vectorsModel
+from MyLibs.accurcy_calculator import get_accurcy, get_reference_accurcy, get_total_accurcy, get_total_ref_accurcy
 from sklearn.model_selection import train_test_split
 
 import unicodedata
@@ -383,33 +384,47 @@ checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 print_setup_file()
 
 with open(os.path.join(corpus_path,"train.result"), 'w', encoding = 'utf-8') as f:
-  qualtiy_res = []
+  accuracy_res = []
+  ref_accuracy_res = []
   for i in range(len(sentences_train)):
       f.write("\n-------------------------------------------------------------------\n")
       result = start_seq + " " + translate(sentences_train[i] + "\n")
-      accuracy = get_qualtiy(answers_train[i], result, start_ref, end_ref)
-      qualtiy_res.append(accuracy)
-      f.write('Input:           %s' % (sentences_train[i])+ "\n")
-      f.write('Expexted Result: %s' % (answers_train[i])+ "\n")
-      f.write('Actual Result:   %s' % (result)+ "\n")
-      f.write('Accuracy:        %s' % (accuracy)+ "\n")
+      accuracy = get_accurcy(answers_train[i], result, start_ref, end_ref, special_tags ,min_accuracy)
+      ref_accuracy = get_reference_accurcy(answers_train[i], result, start_ref, end_ref, special_tags ,min_accuracy)
+      accuracy_res.append(accuracy)            
+      ref_accuracy_res.append(ref_accuracy)
+   
+      f.write('Input:              %s' % (sentences_train[i])+ "\n")
+      f.write('Expexted Result:    %s' % (answers_train[i])+ "\n")
+      f.write('Actual Result:      %s' % (result)+ "\n")
+      f.write('Reference Accuracy: %s' % (ref_accuracy)+ "\n")    
+      f.write('Accuracy:           %s' % (accuracy)+ "\n")
 
   f.write("\n-------------------------------------------------------------------\n")
-  f.write('Toatl Accuracy:   %s' % (sum(qualtiy_res) / len(qualtiy_res))+ "\n")    
-  print("Toatl accuracy for trian data is", (sum(qualtiy_res) / len(qualtiy_res)))    
+  f.write('Toatl Reference Accuracy: %s' % (get_total_ref_accurcy(ref_accuracy_res))+ "\n") 
+  f.write('Toatl Accuracy:           %s' % (get_total_accurcy(accuracy_res))+ "\n")
+  print("Toatl reference accuracy for test train is", (get_total_ref_accurcy(ref_accuracy_res)))   
+  print("Toatl accuracy for train data is", (get_total_accurcy(accuracy_res)))    
 
 with open(os.path.join(corpus_path,"test.result"), 'w', encoding = 'utf-8') as f:
-  qualtiy_res = []
+  accuracy_res = []
+  ref_accuracy_res = []
   for i in range(len(sentences_test)):
       f.write("\n-------------------------------------------------------------------\n")
       result = start_seq + " " + translate(sentences_test[i] + "\n")
-      accuracy = get_qualtiy(answers_test[i], result, start_ref, end_ref)
-      qualtiy_res.append(accuracy)    
-      f.write('Input:           %s' % (sentences_test[i])+ "\n")
-      f.write('Expexted Result: %s' % (answers_test[i])+ "\n")
-      f.write('Actual Result:   %s' % (result)+ "\n")
-      f.write('Accuracy:        %s' % (accuracy)+ "\n")
+      accuracy = get_accurcy(answers_test[i], result, start_ref, end_ref, special_tags ,min_accuracy)
+      ref_accuracy = get_reference_accurcy(answers_test[i], result, start_ref, end_ref, special_tags ,min_accuracy)
+      accuracy_res.append(accuracy)            
+      ref_accuracy_res.append(ref_accuracy)
+   
+      f.write('Input:              %s' % (sentences_test[i])+ "\n")
+      f.write('Expexted Result:    %s' % (answers_test[i])+ "\n")
+      f.write('Actual Result:      %s' % (result)+ "\n")
+      f.write('Reference Accuracy: %s' % (ref_accuracy)+ "\n")    
+      f.write('Accuracy:           %s' % (accuracy)+ "\n")
 
   f.write("\n-------------------------------------------------------------------\n")
-  f.write('Toatl Accuracy:   %s' % (sum(qualtiy_res) / len(qualtiy_res))+ "\n")    
-  print("Toatl accuracy for test data is", (sum(qualtiy_res) / len(qualtiy_res)))    
+  f.write('Toatl Reference Accuracy: %s' % (get_total_ref_accurcy(ref_accuracy_res))+ "\n") 
+  f.write('Toatl Accuracy:           %s' % (get_total_accurcy(accuracy_res))+ "\n")
+  print("Toatl reference accuracy for test train is", (get_total_ref_accurcy(ref_accuracy_res)))   
+  print("Toatl accuracy for test data is", (get_total_accurcy(accuracy_res)))   
