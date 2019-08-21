@@ -57,6 +57,7 @@ print("special_tags:", special_tags)
 print("non_exists_word:", non_exists_word)
 print("do_shuffle:", do_shuffle)
 print("min_accuracy:", min_accuracy)
+print("restore:", restore)
 print("-----------------------------------------------------\n\n")
 
 #gets/creates gensim vectors model of corpus
@@ -103,6 +104,7 @@ def print_setup_file():
       f.write("non_exists_word: " + non_exists_word + "\n")
       f.write("do_shuffle: "+ str(do_shuffle) + "\n")
       f.write("min_accuracy: "+ str(min_accuracy) + "\n")
+      f.write("restore: "+ str(restore) + "\n")
       f.write("-----------------------------------------------------\n\n")
 
 def loss_function(real, pred):
