@@ -42,6 +42,7 @@ test_size = 0.25
 batch_size = 1
 do_shuffle = 0
 min_accuracy = 0.75
+restore = 0
 
 print("\n\n-----------------------------------------------------")
 print("Setup:")
@@ -356,6 +357,9 @@ checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
 checkpoint = tf.train.Checkpoint(optimizer=optimizer,
                                  encoder=encoder,
                                  decoder=decoder)
+
+if restore:
+  checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
 for epoch in range(epochs):
   start = time.time()
