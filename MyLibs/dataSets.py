@@ -44,6 +44,12 @@ def get_data_sets(sentences, vec_model, non_exists_idx_val = 0, pad_idx_val = 0)
     print("End get_data_sets function", datetime.datetime.now())
     return data_set 
 
+def get_binary_data_set(data_set):
+    print("Start get_data_sets function", datetime.datetime.now())
+    data_set = np.array(data_set)
+    print("End get_data_sets function", datetime.datetime.now())
+    return data_set
+
 def sentence_to_indexes(sentence, vec_model, max_length_inp):
   indexes = []
   for word in sentence.split(' '):
@@ -93,8 +99,11 @@ def read_sentences_and_answers(file_path, start_tag = "", end_tag = "", max_len_
         sentence = sentence.strip().rstrip()
         answer = answer.strip().rstrip()
         if max_len_sent == -1 or len(sentence.split()) <= max_len_sent:
-            sentences.append(start_tag + sentence + end_tag)
-            answers.append(start_tag + answer + end_tag)
+            sentence = start_tag + sentence + end_tag
+            answer = start_tag + answer + end_tag
+            if is_int(answer): answer = int(answer)
+            sentences.append(sentence)
+            answers.append(answer)
 
     if limit > 0:
         sentences = sentences[:limit]

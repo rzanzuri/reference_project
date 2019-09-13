@@ -59,14 +59,14 @@ def get_indexes(sentence, start_tag, end_tag):
 def get_grade(index_a, index_b, length):
   if index_a == -1 or index_b == -1: return 1
   grade = abs(index_a - index_b)
-  grade = grade / length
+  grade = grade / (length / 2 )
   return grade
 
 def get_accurcy(excepted, results, start_tag, end_tag, special_tags = [] ,accuracy = 0.5):
     similarity = get_sentences_smilarity(excepted, results, special_tags ,accuracy)
     ref_accurcy = get_reference_accurcy(excepted, results, start_tag, end_tag, special_tags,accuracy)
     if ref_accurcy == -1: ref_accurcy = 1
-    return  similarity * ref_accurcy
+    return  (similarity + ref_accurcy) / 2
 
 def get_reference_accurcy(excepted, results, start_tag, end_tag, special_tags = [] ,accuracy = 0.5):        
     scores = []
