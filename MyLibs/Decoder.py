@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.layers import LSTM, Dense, Embedding, Bidirectional
-from Python_lib.BahdanauAttention import BahdanauAttention as BahdanauAttention
+from MyLibs.BahdanauAttention import BahdanauAttention as BahdanauAttention
 
 class Decoder(tf.keras.Model):
   def __init__(self, vocab_size, embedding_dim, pretrained_weights, maxlen, dec_units, batch_sz):

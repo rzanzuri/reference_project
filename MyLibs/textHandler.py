@@ -39,8 +39,7 @@ def get_sentences_by_max_length(sentence, max_sen_len = -1):
 def get_len_of_longest_sentence(sentences):
     max_len = 0
     for sentence in sentences:
-        x = nltk.tokenize.regexp_tokenize(sentence, pattern=r'\w+|\$[\d\.]+|\S+')
-        y = len(x)
+        y = len( nltk.tokenize.regexp_tokenize(sentence.strip(), pattern=r'\w+|\$[\d\.]+|\S+'))
         if(y > max_len):
             max_len = y
     return max_len

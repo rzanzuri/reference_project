@@ -1,7 +1,7 @@
-import Python_lib.dataSets as dataSets
-import Python_lib.vectorsModel as vectorsModel
-import Python_lib.named_entity_recognotion as NER
-import Python_lib.textHandler as textHandler
+import MyLibs.dataSets as dataSets
+import MyLibs.vectorsModel as vectorsModel
+import MyLibs.named_entity_recognotion as NER
+import MyLibs.textHandler as textHandler
 import numpy as np
 import multiprocessing
 import logging
@@ -14,11 +14,10 @@ from threading import Thread
 import os
 from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
-import Python_lib.read_html as read_html
-from scipy import spatial
+import MyLibs.read_html as read_html
 #from tika import parser
 import re
-from Python_lib.textHandler import clean_hebrew_text_from_dir
+from MyLibs.textHandler import clean_hebrew_text_from_dir
 
 
 def preprocess_sentence(w):
@@ -178,7 +177,7 @@ def write_n_sentences(amount, src_file , dest_file):
     
     for j, line in enumerate(lines):
         for sent in line.split('.'):
-            if len(sent.split()) > 4:
+            if len(sent.split()) > 4  and len(sent.split()) <= 50:
                 sentences.append(sent.lstrip().rstrip() + ".")
 
     with open(dest_file,'w' , encoding = 'utf-8') as f:
@@ -189,14 +188,14 @@ def write_n_sentences(amount, src_file , dest_file):
             i+=1    
 
 def create_rand_sents():
-    t1  = Thread(target=write_n_sentences, args=(3000,"./Data/RabannyText/RabannyText.txt","./Data/RabannyText/RabannyText_3000_Sen.txt"))
-    t2  = Thread(target=write_n_sentences, args=(3000,"./Data/HebrewText/HebrewText.txt","./Data/HebrewText/HebrewText_3000_Sen.txt"))
+    t1  = Thread(target=write_n_sentences, args=(3000,"./Data/RabannyText/all.txt","./Data/RabannyText/RabannyText_3000_Sen.txt"))
+    # t2  = Thread(target=write_n_sentences, args=(3000,"./Data/HebrewText/HebrewText.txt","./Data/HebrewText/HebrewText_3000_Sen.txt"))
     
     t1.start()
-    t2.start()
+    # t2.start()
 
     t1.join()
-    t2.join()
+    # t2.join()
 
 def create_ans_file(file_path, true_count, false_count, dest_file_path):
     sents = []
@@ -442,7 +441,28 @@ def get_distance_of_letters(vec_model, word):
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
-    #create_ans_for_rabanny_text('./Data/RabannyText/RabannyText_3000_Sen.txt')
+
+    with open("./Data/RabannyText/RabannyText.ans",'r', encoding='utf-8') as rf:
+        with open("./Data/RabannyText/RabannyText.ans.true_flase",'w', encoding='utf-8') as wf:
+            lines = rf.readlines()
+            for i, line in enumerate(lines):
+                if i%2:
+                    if '<start_ref>' in line:
+                        wf.write("1\n")
+                    else:
+                        wf.write("0\n")
+                else:
+                    wf.write(line)    
+                    
+    with open("./Data/spa-eng/spa.txt",'r', encoding='utf-8') as rf:
+        with open("./Data/spa-eng/spa.ans",'w', encoding='utf-8') as wf:
+            lines = rf.readlines()
+            for line in lines:
+                line = line.split('\t')
+                wf.write(line[0].strip().rstrip() + "\n")
+                wf.write(line[1].strip().rstrip() + "\n")
+    # create_rand_sents()
+    # create_ans_for_rabanny_text('./Data/RabannyText/RabannyText_3000_Sen.txt')
     # base_path = "C:\\hebrewNER-1.0.1-Win\\bin\\"
     # with open("./Data/HebrewText/HebrewText_3000_Sen.txt",'r',encoding='utf-8') as f:
     #     text = f.readlines()
@@ -461,96 +481,13 @@ if __name__ == "__main__":
     
     
     # create_rand_sents()
-    vec_model = create_vec_model()
-    english_qualty(vec_model)
-    #hebrew_qualty(vec_model)
-    print(vec_model.wv.vectors.shape[0])
-    exit()
+    # vec_model = create_vec_model()
+    # most_similar = vec_model.most_similar(positive=["נוסף", "ת"], topn = 10)
+    # for sim_line in most_similar:
+    #     if sim_line[0] in vec_model.wv.vocab:
+    #         print(sim_line[0] + "\n" + str(sim_line[1]) + "\n")
+                
 
-    # with open(r".\Data\hebrew_data\full_hebrew.txt", encoding="utf-8") as f:
-    #     lines =  f.readlines()
-    #     regular_words = set()
-    #     for line in lines:
-    #         words = re.findall(r'\d+[.,]\d+[.,]\d+|\d+[.,]\d+|\d+|\w+[\"\']\w+|\w+|\S',line)
-    #         for word in words:
-    #             if word not in regular_words:
-    #                 regular_words.add(word)
-    # with open("./regular_words_hebrew.txt","w",encoding="utf-8") as f:
-    #     for word in regular_words:
-    #         print(word,file=f)
-
-    # with open("./regular_words_hebrew.txt", encoding = "utf-8") as f:
-    #     lines =  f.readlines()
-    #     regular_words = set()
-    #     for reg_word in lines:
-    #         regular_words.add(reg_word.lower().strip())
-    #     # for word in regular_words:
-    #     #     print(word, file = out)
-
-    # total_words = []
-    # missing_words = []
-    # for word in vec_model.wv.vocab:
-    #     if word.lower() in regular_words:
-    #         total_words.append(word)
-    #     else:
-    #         missing_words.append(word)
-
-    # print("Total words:", len(total_words))
-    # print("Missing words:", len(missing_words))
-    # print("Misiing words:", missing_words)
-    
-    total_amount_2 = 0
-    total_place_2 = 0
-    count_2 = 0
-    total_amount_3 = 0
-    total_place_3 = 0
-    count_3 = 0
-    total_amount_4 = 0
-    total_place_4 = 0
-    count_4 = 0
-    total_amount_5 = 0
-    total_place_5 = 0
-    count_5 = 0
-    for i, word in enumerate(vec_model.wv.vocab):
-        # if i == 10000:
-        #     break
-        if len(word) == 2:
-            tup = get_distance_of_letters(vec_model, word)
-            total_amount_2 += tup[1]
-            total_place_2 += tup[0]
-            count_2 += 1
-        elif len(word) == 3:
-            tup = get_distance_of_letters(vec_model, word)
-            total_amount_3 += tup[1]
-            total_place_3 += tup[0]
-            count_3 += 1
-        # elif len(word) == 4:
-        #     tup = get_distance_of_letters(vec_model, word)
-        #     total_amount_4 += tup[1]
-        #     total_place_4 += tup[0]
-        #     count_4 += 1
-        # elif len(word) == 5:
-        #     tup = get_distance_of_letters(vec_model, word)
-        #     total_amount_5 += tup[1]
-        #     total_place_5 += tup[0]
-        #     count_5 += 1
-
-
-    print("total vectors len 2:", count_2)
-    print("total average len 2:", total_amount_2/count_2)
-    print("total plcae len 2:", total_place_2/count_2)
-    print("total vectors len 3:", count_3)
-    print("total average len 3:", total_amount_3/count_3)
-    print("total plcae len 3:", total_place_3/count_3)
-    print("total vectors len 4:", count_4)
-    print("total average len 4:", total_amount_4/count_4)
-    print("total plcae len 4:", total_place_4/count_4)
-    print("total vectors len 5:", count_5)
-    print("total average len 5:", total_amount_5/count_5)
-    print("total plcae len 5:", total_place_5/count_5)
-
-
-    #hebrew_qualty(vec_model)
 
     
     # create_ans_file("./Data/‏‏HebrewTextForNER/HebrewTextForNER_3000sen.ans", 550, 550 , "./Data/‏‏HebrewTextForNER/HebrewTextForNER.ans")

@@ -1,7 +1,7 @@
 #pip install --upgrade google-cloud-translate
 import re
 import datetime
-import Python_lib.Tokenizer as Tokenizer
+import MyLibs.Tokenizer as Tokenizer
 from nltk.tokenize import regexp_tokenize, wordpunct_tokenize, blankline_tokenize
 
 # check how many times any word show in the fname in average

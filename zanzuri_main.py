@@ -17,11 +17,11 @@ import asyncio
 from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
 
-import Python_lib.Tokenizer as Tokenizer
-# import Python_lib.Statistics_text as Statistics
-import Python_lib.read_html as read_html
-import Python_lib.textHandler as textHandler
-import Python_lib.named_entity_recognotion as ner
+import MyLibs.Tokenizer as Tokenizer
+# import MyLibs.Statistics_text as Statistics
+import MyLibs.read_html as read_html
+import MyLibs.textHandler as textHandler
+import MyLibs.named_entity_recognotion as ner
 
 
 source_dir = r"./Data/"

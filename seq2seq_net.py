@@ -1,220 +1,440 @@
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, LSTM, Dense, Embedding, Flatten, TimeDistributed, Dropout, LSTMCell, RNN
-from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.python.keras.utils import tf_utils
-from tensorflow.keras import backend as K
-from Python_lib.LSTMWithAttention import LSTMWithAttention
 import tensorflow as tf
-import Python_lib.dataSets as dataSets
-import Python_lib.vectorsModel as vectorsModel
-import Python_lib.textHandler as textHandler
-import multiprocessing
-import logging
-import datetime
-
-import gensim
-# This enables the Jupyter backend on some matplotlib installations.
-# %matplotlib notebook
 import matplotlib.pyplot as plt
-# Turn off interactive plots. iplt doesn't work well with Jupyter.
-plt.ioff()
+from tensorflow.keras.layers import LSTM, Dense, Embedding, Bidirectional, Concatenate
+from MyLibs.Encoder import Encoder as Encoder
+from MyLibs.Decoder import Decoder as Decoder
+from MyLibs.BahdanauAttention import BahdanauAttention as BahdanauAttention
+import MyLibs.dataSets as dataSets
+import MyLibs.vectorsModel as vectorsModel
+from MyLibs.accurcy_calculator import get_accurcy, get_reference_accurcy, get_total_accurcy, get_total_ref_accurcy
+from sklearn.model_selection import train_test_split
+from termcolor import colored
 
 import unicodedata
 import re
 import numpy as np
 import os
 import time
-import shutil
+import datetime
+import multiprocessing
 
-iters = 6
-min_count = 60
-vec_size = 300 
-win_size = 10
+start_run = datetime.datetime.now()
+print("Start:", start_run)
+
+# corpus_path, ans_kind = "./Data/spa-eng/", ""
+# corpus_path, ans_kind = "./Data/heb-eng/", ""
+corpus_path, ans_kind = "./Data/RabannyText/", "RabannyText_mark.ans"
+# corpus_path, ans_kind = "./Data/RabannyText/", "RabannyText_true_false.ans"
+
+start_seq = '<start>'
+end_seq = '<end>'
+start_ref = '<start_ref>'
+end_ref = '<end_ref>'
+non_exists_word = 'NONE'
+
+# special_tags = [start_seq, end_seq]
+special_tags = [start_seq, end_seq, start_ref, end_ref]
 workers = multiprocessing.cpu_count() 
-epochs = 1
-limit = 1000
-test_size = 0.2
-max_len_sent = 100
-BATCH_SIZE = 8
+epochs = 100
+num_examples =  1000
+max_len_sent = 25
+test_size = 0.25
+batch_size = 1
+do_shuffle = 0
+min_accuracy = 0.75
+restore = 0
 
-start = datetime.datetime.now()
-print("start:", start)
+print("\n\n-----------------------------------------------------")
+print("Setup:")
+print("corpus_path:", corpus_path)
+print("workers:", workers)
+print("epochs:", epochs)
+print("num_examples:", num_examples)
+print("max_len_sent:", max_len_sent)
+print("test_size:", test_size)
+print("batch_size:", batch_size)
+print("special_tags:", special_tags)
+print("non_exists_word:", non_exists_word)
+print("do_shuffle:", do_shuffle)
+print("min_accuracy:", min_accuracy)
+print("restore:", restore)
+print("-----------------------------------------------------\n\n")
 
+#gets/creates gensim vectors model of corpus
+vec_model = vectorsModel.get_model_vectors(corpus_path, iters= 50, min_count = 40, workers = workers, non_exists_word = non_exists_word, special_tags = special_tags)
+pretrained_weights, vocab_size, emdedding_size = vectorsModel.get_index_vectors_matrix(vec_model)
+sentences, answers = dataSets.get_sentences_and_answers(os.path.join(corpus_path,ans_kind), start_seq, end_seq, max_len_sent, num_examples, do_shuffle)
 
-#model setup
+sentences_train, sentences_test, answers_train, answers_test = train_test_split(sentences, answers, test_size = test_size)
 
-curpus_path = "./Data/RabannyText/"
-vec_model_root_path = "./VecModels/"
+#transform sentences and answers to idexes (in vocab) vectors, and split to trian and test sets
+X_train = dataSets.get_data_sets(sentences_train, vec_model)
+Y_train = dataSets.get_data_sets(answers_train, vec_model)
 
-print("curpus_path:", curpus_path)
+# for i in range(len(Y_train)):
+#   print(dataSets.indexes_to_sentence(X_train[i],vec_model))
+#   print(dataSets.indexes_to_sentence(Y_train[i],vec_model))
 
-vec_model = vectorsModel.get_model_vectors(curpus_path, vec_model_root_path, win_size, iters, min_count, vec_size, workers)
-
-sent = '<start> ' * 30
-vec_model.build_vocab([sent.split()], update=True)
-
-sent = '<end> ' * 30
-vec_model.build_vocab([sent.split()], update=True)
-
-sent = '<start_ref> ' * 30
-vec_model.build_vocab([sent.split()], update=True)
-
-sent = '<end_ref> ' * 30
-vec_model.build_vocab([sent.split()], update=True)
-
-sentences, answers = dataSets.get_sentences_and_answers(curpus_path, max_len_sent = max_len_sent, limit= limit)
-
-X_train, _ = dataSets.get_data_set(sentences,vec_model, 0)
-Y_train, _ = dataSets.get_data_set(answers, vec_model, 0)
-input_len = X_train.shape[1]
-output_len  = Y_train.shape[1]
-
-target_data = [[Y_train[n][i+1] for i in range(len(Y_train[n])-1)] for n in range(len(Y_train))]
-target_data = tf.keras.preprocessing.sequence.pad_sequences(target_data, maxlen=output_len, padding="post")
-target_data = target_data.reshape((target_data.shape[0], target_data.shape[1], 1))
-
-pretrained_weights = vec_model.wv.syn0
-vocab_size, emdedding_size = pretrained_weights.shape
+X_test = sentences_test
+Y_test = answers_test
 
 print('Result embedding shape:', pretrained_weights.shape)
-print('train_x shape:', X_train.shape)
-print('train_y shape:', Y_train.shape)
-print('target_data shape:', target_data.shape)
+print('X_train, X_test length:',  len(X_train),  len(X_test))
+print('Y_train, Y_test length:',  len(Y_train),  len(Y_test))
+
+steps_per_epoch = len(X_train)//batch_size
+units = emdedding_size
+vocab_inp_size = vocab_size
+vocab_tar_size = vocab_size
+path_to_file = corpus_path
 
 
-# attenc_inputs = Input(shape=(input_len,), name="attenc_inputs")
-# attenc_emb = Embedding(vocab_size, emdedding_size, weights=[pretrained_weights], input_length=input_len, trainable=True)
-# attenc_lstm = LSTM(units=emdedding_size, return_sequences=True, return_state=True)
-# attenc_outputs, attstate_h, attstate_c = attenc_lstm(attenc_emb(attenc_inputs))
-# attenc_states = [attstate_h, attstate_c]
+def print_setup_file():
+  with open(os.path.join(corpus_path,"setup.txt"), 'w', encoding = 'utf-8') as f:
+      f.write("\n\n-----------------------------------------------------\n")
+      f.write("Setup:\n")
+      f.write("corpus_path: " + corpus_path + "\n")
+      f.write("workers: " + str(workers) + "\n")
+      f.write("epochs: "+ str(epochs) + "\n")
+      f.write("num_examples: " + str(num_examples) + "\n")
+      f.write("max_len_sent: " + str(max_len_sent) + "\n")
+      f.write("test_size :" + str(test_size) + "\n")
+      f.write("batch_size: " + str(batch_size) + "\n")
+      f.write("special_tags: " + str(special_tags) + "\n")
+      f.write("non_exists_word: " + non_exists_word + "\n")
+      f.write("do_shuffle: "+ str(do_shuffle) + "\n")
+      f.write("min_accuracy: "+ str(min_accuracy) + "\n")
+      f.write("restore: "+ str(restore) + "\n")
+      f.write("-----------------------------------------------------\n\n")
 
-# attdec_inputs = Input(shape=(None,))
-# attdec_emb = Embedding(vocab_size, emdedding_size, weights=[pretrained_weights], input_length=output_len, trainable=True)
-# attdec_lstm = LSTMWithAttention(units=emdedding_size, return_sequences=True, return_state=True)
-# # Note that the only real difference here is that we are feeding attenc_outputs to the decoder now.
-# # Nice and clean!
-# attdec_lstm_out, _, _ = attdec_lstm(inputs=attdec_emb(attdec_inputs), 
-#                                     constants=attenc_outputs, 
-#                                     initial_state=attenc_states)
-# attdec_d1 = Dense(emdedding_size, activation="relu")
-# attdec_d2 = Dense(vocab_size, activation="softmax")
-# attdec_out = attdec_d2(Dropout(rate=.4)(attdec_d1(Dropout(rate=.4)(attdec_lstm_out))))
+def loss_function(real, pred):
+  mask = tf.math.logical_not(tf.math.equal(real, 0))
+  loss_ = loss_object(real, pred)
 
-# attmodel = Model([attenc_inputs, attdec_inputs], attdec_out)
-# attmodel.compile(optimizer=tf.keras.optimizers.Adam(), loss="sparse_categorical_crossentropy", metrics=['sparse_categorical_accuracy'])
+  mask = tf.cast(mask, dtype=loss_.dtype)
+  loss_ *= mask
 
-# atthist = attmodel.fit([X_train, Y_train], target_data,
-#                  batch_size=BATCH_SIZE,
-#                  epochs=epochs,
-#                  validation_split=test_size)
-# # Plot the results of the training.
-# plt.plot(atthist.history['sparse_categorical_accuracy'], label="Training loss")
-# plt.plot(atthist.history['val_sparse_categorical_accuracy'], label="Validation loss")
-# plt.show()
+  return tf.reduce_mean(loss_)
 
-# Create the Encoder layers first.
-encoder_inputs = Input(shape=(input_len,))
-encoder_emb = Embedding(vocab_size, emdedding_size, weights=[pretrained_weights], input_length=input_len, trainable=True)
-encoder_lstm = LSTM(units=emdedding_size, return_sequences=True, return_state=True)
-encoder_outputs, state_h, state_c = encoder_lstm(encoder_emb(encoder_inputs))
-encoder_states = [state_h, state_c]
+@tf.function
+def train_step(inp, targ, forward_h, forward_c, backward_h, backward_c):
+  loss = 0
 
-# Now create the Decoder layers.
-decoder_inputs = Input(shape=(None,))
-decoder_emb = Embedding(vocab_size, emdedding_size, weights=[pretrained_weights], input_length=output_len, trainable=True)
-decoder_lstm = LSTM(units=emdedding_size, return_sequences=True, return_state=True)
-decoder_lstm_out, _, _ = decoder_lstm(decoder_emb(decoder_inputs), initial_state=encoder_states)
-# Two dense layers added to this model to improve inference capabilities.
-decoder_d1 = Dense(emdedding_size, activation="relu")
-decoder_d2 = Dense(vocab_size, activation="softmax")
-# Drop-out is added in the dense layers to help mitigate overfitting in this part of the model. Astute developers
-# may want to add the same mechanism inside the LSTMs.
-decoder_out = decoder_d2(Dropout(rate=.4)(decoder_d1(Dropout(rate=.4)(decoder_lstm_out))))
+  with tf.GradientTape() as tape:
+    enc_output, enc_forward_h, enc_forward_c, enc_backward_h, enc_backward_c = encoder(inp, forward_h, forward_c, backward_h, backward_c)
 
-# Finally, create a training model which combines the encoder and the decoder.
-# Note that this model has three inputs:
-#  encoder_inputs=[batch,encoded_words] from input language (English)
-#  decoder_inputs=[batch,encoded_words] from output language (Spanish). This is the "teacher tensor".
-#  decoder_out=[batch,encoded_words] from output language (Spanish). This is the "target tensor".
-model = Model([encoder_inputs, decoder_inputs], decoder_out)
-# We'll use sparse_categorical_crossentropy so we don't have to expand decoder_out into a massive one-hot array.
-#  Adam is used because it's, well, the best.
-model.compile(optimizer=tf.keras.optimizers.Adam(), loss="sparse_categorical_crossentropy", metrics=['sparse_categorical_accuracy'])
-# Note, we use 20% of our data for validation.
-history = model.fit([X_train, Y_train], target_data,
-                 batch_size=BATCH_SIZE,
-                 epochs=epochs,
-                 validation_split=test_size)
+    dec_forward_h, dec_forward_c, dec_backward_h, dec_backward_c = enc_forward_h, enc_forward_c, enc_backward_h, enc_backward_c
 
+    dec_input = tf.expand_dims([vec_model.wv.vocab[start_seq].index] * batch_size, 1)
 
-model.save("./")
-# Plot the results of the training.
-# plt.plot(history.history['sparse_categorical_accuracy'], label="Training loss")
-# plt.plot(history.history['val_sparse_categorical_accuracy'], label="Validation loss")
-# plt.show()
+    # Teacher forcing - feeding the target as the next input
+    for t in range(1, targ.shape[1]):
+      # passing enc_output to the decoder
+      predictions, dec_forward_h, dec_forward_c, dec_backward_h, dec_backward_c, _ = decoder(dec_input, dec_forward_h, dec_forward_c, dec_backward_h, dec_backward_c, enc_output)
 
+      loss += loss_function(targ[:, t], predictions)
 
-# Create the encoder model from the tensors we previously declared.
-encoder_model = Model(encoder_inputs, [encoder_outputs, state_h, state_c])
+      # using teacher forcing
+      dec_input = tf.expand_dims(targ[:, t], 1)
 
-# Generate a new set of tensors for our new inference decoder. Note that we are using new tensors, 
-# this does not preclude using the same underlying layers that we trained on. (e.g. weights/biases).
-inf_decoder_inputs = Input(shape=(None,), name="inf_decoder_inputs")
-# We'll need to force feed the two state variables into the decoder each step.
-state_input_h = Input(shape=(emdedding_size,), name="state_input_h")
-state_input_c = Input(shape=(emdedding_size,), name="state_input_c")
-decoder_res, decoder_h, decoder_c = decoder_lstm(
-    decoder_emb(inf_decoder_inputs), 
-    initial_state=[state_input_h, state_input_c])
-inf_decoder_out = decoder_d2(decoder_d1(decoder_res))
-inf_model = Model(inputs=[inf_decoder_inputs, state_input_h, state_input_c], 
-                  outputs=[inf_decoder_out, decoder_h, decoder_c])
+  batch_loss = (loss / int(targ.shape[1]))
+
+  variables = encoder.trainable_variables + decoder.trainable_variables
+
+  gradients = tape.gradient(loss, variables)
+
+  optimizer.apply_gradients(zip(gradients, variables))
+
+  return batch_loss
+
+def evaluate(sentence):
+    attention_plot = np.zeros((max_length_targ, max_length_inp))
+
+    # x = [vec_model.wv.vocab[i].index if i in vec_model.wv.vocab else 0 for i in sentence.split(' ')]
+    # x = tf.keras.preprocessing.sequence.pad_sequences([x],
+    #                                                        maxlen=max_length_inp,
+    #                                                        padding='post')
+    inputs = dataSets.sentence_to_indexes(sentence,vec_model, max_length_inp)
+    inputs = tf.convert_to_tensor(inputs)
+
+    result = ''
+    forward_h  = tf.zeros((1, units))
+    forward_c  = tf.zeros((1, units))
+    backward_h = tf.zeros((1, units))
+    backward_c = tf.zeros((1, units))
+
+    enc_out, enc_forward_h, enc_forward_c, enc_backward_h, enc_backward_c = encoder(inputs, forward_h, forward_c, backward_h, backward_c)
+
+    dec_forward_h, dec_forward_c, dec_backward_h, dec_backward_c = enc_forward_h, enc_forward_c, enc_backward_h, enc_backward_c
 
 
-def sentence_to_vector(sentence):
-    # pre = preprocess_sentence(sentence)
-    vec = np.zeros(input_len)
-    sentence_list = [vec_model.wv.vocab[s].index for s in sentence.split(' ')]
-    for i,w in enumerate(sentence_list):
-        vec[i] = w
-    return vec
+    dec_input = tf.expand_dims([vec_model.wv.vocab[start_seq].index], 0)
 
-# Given an input string, an encoder model (infenc_model) and a decoder model (infmodel),
-# return a translated string.
-def translate(input_sentence, infenc_model, infmodel, attention=False):
-    sv = sentence_to_vector(input_sentence)
-    # Reshape so we can use the encoder model. New shape=[samples,sequence length]
-    sv = sv.reshape(1,len(sv))
-    [emb_out, sh, sc] = infenc_model.predict(x=sv)
+    for t in range(max_length_targ):
+        predictions, dec_forward_h, dec_forward_c, dec_backward_h, dec_backward_c, attention_weights = decoder(dec_input,
+                                                                                                               dec_forward_h, dec_forward_c, dec_backward_h, dec_backward_c,
+                                                                                                               enc_out)
+
+        # storing the attention weights to plot later on
+        attention_weights = tf.reshape(attention_weights, (-1, ))
+        attention_plot[t] = attention_weights.numpy()
+        # print("evaluate attention_plot[",t,"]",attention_plot[t])
+
+        predicted_id = tf.argmax(predictions[0]).numpy()
+
+        result += vec_model.wv.index2word[predicted_id] + ' '
+
+        if vec_model.wv.index2word[predicted_id] == end_seq:
+            return result, sentence, attention_plot
+
+        # the predicted ID is fed back into the model
+        dec_input = tf.expand_dims([predicted_id], 0)
+
+    return result, sentence, attention_plot
+
+# function for plotting the attention weights
+def plot_attention(attention, sentence, predicted_sentence):
+    # print("plot_attention attention:", attention)
+    fig = plt.figure(figsize=(10,10))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.matshow(attention, cmap='viridis')
+
+    fontdict = {'fontsize': 14}
+
+    ax.set_xticklabels([''] + sentence, fontdict=fontdict, rotation=90)
+    ax.set_yticklabels([''] + predicted_sentence, fontdict=fontdict)
+
+
+    plt.show()
+
+def translate(sentence):
+    result, sentence, attention_plot = evaluate(sentence)
+
+    # print('Input: %s' % (sentence))
+    # print('Predicted translation: {}'.format(result))
+
+    return result.strip().rstrip()
+
+    # attention_plot = attention_plot[:len(result.split(' ')), :len(sentence.split(' '))]
+    # plot_attention(attention_plot, sentence.split(' '), result.split(' '))
+    # storing the attention weights to plot later on
+
+
+def get_indexes(sentence, start_tag, end_tag):
+  my_list = sentence.split()
+  last = ""
+  indexes_start = []
+  indexes_end = []
+  missed = 0
+  for i, element in enumerate(my_list):
+      if element == start_tag:
+          if last == start_tag:
+              indexes_end.append(-1)
+              missed += 1
+          indexes_start.append(i - len(indexes_start) - len(indexes_end) + missed)
+          last = start_tag
+      elif element == end_tag:
+          if last == end_tag:
+              indexes_start.append(-1)
+              missed += 1
+          indexes_end.append(i - len(indexes_start) - len(indexes_end) + missed)
+          last = end_tag
+
+  if len(indexes_start) > len(indexes_end):
+      for i in range(len(indexes_start) - len(indexes_end)):
+          indexes_end.append(-1)
+
+  if len(indexes_end) > len(indexes_start):
+      for i in range(len(indexes_end) - len(indexes_start)):
+          indexes_start.append(-1)
+
+  return indexes_start, indexes_end
+
+def get_grade(index_a, index_b, length):
+  if index_a == -1 or index_b == -1: return 1
+  grade = abs(index_a - index_b)
+  grade = grade / length
+  return grade
+
+def get_qualtiy(excepted, results, start_tag, end_tag):
+  scores = []
+
+  if not is_same_sentence(excepted, results, start_tag, end_tag):
+    return 0.0
+  if not is_contanins_ref(excepted,start_tag, end_tag):
+    return get_smilarity_quality(excepted, results, start_tag, end_tag)
+  
+  excepted_indexes_start, excepted_indexes_end = get_indexes(excepted, start_tag, end_tag)
+  results_indexes_start, results_indexes_end = get_indexes(results, start_tag, end_tag)
+
+  while len(results_indexes_start) > len(excepted_indexes_start) and -1 in results_indexes_start:
+      results_indexes_start.remove(-1)
+  while len(results_indexes_end) > len(excepted_indexes_end) and -1 in results_indexes_end:
+      results_indexes_end.remove(-1)
+  for index in excepted_indexes_start[:]:
+      if index in results_indexes_start:
+          excepted_indexes_start.remove(index)
+          results_indexes_start.remove(index)
+          scores.append(0)
+  for index in excepted_indexes_end[:]:
+      if index in results_indexes_end:
+          excepted_indexes_end.remove(index)
+          results_indexes_end.remove(index)
+          scores.append(0)
+  for i in range(max(len(excepted_indexes_start), len(results_indexes_start))):
+      if len(excepted_indexes_start) > 0 and len(results_indexes_start) > 0:
+          scores.append(get_grade(excepted_indexes_start.pop(), results_indexes_start.pop() , len(excepted.split())))
+      else:
+          scores.append(1)
+
+  for i in range(max(len(excepted_indexes_end), len(results_indexes_end))):
+      if len(excepted_indexes_end) > 0 and len(results_indexes_end) > 0:
+          scores.append(get_grade(excepted_indexes_end.pop(), results_indexes_end.pop() , len(excepted.split())))
+      else:
+          scores.append(1)
+
+  score = 0
+  for s in scores:
+      score += s
+  score /= len(scores)
+  score = 1 - score
+  return score * get_smilarity_quality(excepted, results, start_tag, end_tag)
+
+def is_same_sentence(excepted, result, start_tag, end_tag, accuracy = 0.75):
+    return get_smilarity_quality(excepted, result, start_tag, end_tag) >= accuracy
+
+def get_smilarity_quality(excepted, result, start_tag, end_tag):
+    total_words = excepted.replace(start_tag,'').replace(end_tag,'').strip().rstrip().split(' ')
+    counter = 0
+    for word in total_words:
+        if word in result:
+          counter += 1
     
-    i = 0
-    start_vec = vec_model.wv.vocab["<start>"].index
-    stop_vec = vec_model.wv.vocab["<end>"].index
-    # We will continuously feed cur_vec as an input into the decoder to produce the next word,
-    # which will be assigned to cur_vec. Start it with "<start>".
-    cur_vec = np.zeros((1,1))
-    cur_vec[0,0] = start_vec
-    cur_word = "<start>"
-    output_sentence = ""
-    # Start doing the feeding. Terminate when the model predicts an "<end>" or we reach the end
-    # of the max target language sentence length.
-    while cur_word != "<end>" and i < (output_len-1):
-        i += 1
-        if cur_word != "<start>":
-            output_sentence = output_sentence + " " + cur_word
-        x_in = [cur_vec, sh, sc]
-        # This will allow us to accomodate attention models, which we will talk about later.
-        if attention:
-            x_in += [emb_out]
-        [nvec, sh, sc] = infmodel.predict(x=x_in)
-        # The output of the model is a massive softmax vector with one spot for every possible word. Convert
-        # it to a word ID using argmax().
-        cur_vec[0,0] = np.argmax(nvec[0,0])
-        cur_word = vec_model.wv.index2word[np.argmax(nvec[0,0])]
-    return output_sentence
+    return (counter / len(total_words))
 
-    # Let's test out the model! Feel free to modify as you see fit. Note that only words
-# that we've trained the model on will be available, otherwise you'll get an error.
-print(translate('וכן מתבאר מדברי הרדב"ז בתשובה ח"ז סימן ל"ב שהרמב"ם אוסר להתייחד עם אחותו', encoder_model, inf_model))
-# print(translate("I am hungry", encoder_model, inf_model))
-# print(translate("I know what you said.", encoder_model, inf_model))
+def is_contanins_ref(sentence, start_tag, end_tag):
+    return start_tag in sentence and end_tag in sentence
+
+# Calculate max_length of the target tensors
+max_length_inp, max_length_targ  = X_train.shape[1], Y_train.shape[1]
+
+dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train)).shuffle(len(X_train))
+dataset = dataset.batch(batch_size, drop_remainder=True)
+
+example_input_batch, _ = next(iter(dataset))
+
+encoder = Encoder(vocab_inp_size, emdedding_size, pretrained_weights, max_length_inp ,units, batch_size)
+
+# sample input
+forward_h, forward_c, backward_h, backward_c = encoder.initialize_hidden_state()
+sample_output, forward_h, forward_c, backward_h, backward_c = encoder(example_input_batch, forward_h, forward_c, backward_h, backward_c)
+print ('Encoder output shape: (batch size, sequence length, units) {}'.format(sample_output.shape))
+print ('Encoder Hidden forward_h state shape: (batch size, units) {}'.format(forward_h.shape))
+print ('Encoder Hidden forward_c state shape: (batch size, units) {}'.format(forward_c.shape))
+print ('Encoder Hidden backward_h state shape: (batch size, units) {}'.format(backward_h.shape))
+print ('Encoder Hidden backward_c state shape: (batch size, units) {}'.format(backward_c.shape))
+
+attention_layer = BahdanauAttention(10)
+attention_result, attention_weights = attention_layer(forward_h, forward_c, backward_h, backward_c, sample_output)
+
+print("Attention result shape: (batch size, units) {}".format(attention_result.shape))
+print("Attention weights shape: (batch_size, sequence_length, 1) {}".format(attention_weights.shape))
+
+decoder = Decoder(vocab_tar_size, emdedding_size, pretrained_weights, max_length_targ ,units, batch_size)
+
+sample_decoder_output, _, _, _, _, _ = decoder(tf.random.uniform((batch_size, 1)),
+                                      forward_h, forward_c, backward_h, backward_c, sample_output)
+
+print ('Decoder output shape: (batch_size, vocab size) {}'.format(sample_decoder_output.shape))
+
+optimizer = tf.keras.optimizers.Adam()
+loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
+    from_logits=True, reduction='none')
+
+checkpoint_dir = os.path.join(corpus_path, 'training_checkpoints')
+if not os.path.exists(checkpoint_dir):
+  os.mkdir(checkpoint_dir)
+
+checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+checkpoint = tf.train.Checkpoint(optimizer=optimizer,
+                                 encoder=encoder,
+                                 decoder=decoder)
+
+if restore:
+  checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+
+for epoch in range(epochs):
+  start = time.time()
+
+  enc_forward_h, enc_forward_c, enc_backward_h, enc_backward_c = encoder.initialize_hidden_state()
+  total_loss = 0
+
+  for (batch, (inp, targ)) in enumerate(dataset.take(steps_per_epoch)):
+    batch_loss = train_step(inp, targ, enc_forward_h, enc_forward_c, enc_backward_h, enc_backward_c)
+    total_loss += batch_loss
+
+    if batch % 100 == 0:
+        print('Time: {} Epoch {} Batch {} Loss {:.4f}'.format(datetime.datetime.now(),
+                                                     epoch + 1,
+                                                     batch,
+                                                     batch_loss.numpy()))
+  # saving (checkpoint) the model every 2 epochs
+  if (epoch + 1) % 2 == 0:
+    checkpoint.save(file_prefix = checkpoint_prefix)
+
+  print('Time: {} Epoch {} Loss {:.4f}'.format(datetime.datetime.now(),
+                                      epoch + 1,
+                                      total_loss / steps_per_epoch))
+  print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
+
+# restoring the latest checkpoint in checkpoint_dir
+checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+
+
+print_setup_file()
+
+with open(os.path.join(corpus_path,"train.result"), 'w', encoding = 'utf-8') as f:
+  accuracy_res = []
+  ref_accuracy_res = []
+  for i in range(len(sentences_train)):
+      f.write("\n-------------------------------------------------------------------\n")
+      result = start_seq + " " + translate(sentences_train[i] + "\n")
+      accuracy = get_accurcy(answers_train[i], result, start_ref, end_ref, special_tags ,min_accuracy)
+      ref_accuracy = get_reference_accurcy(answers_train[i], result, start_ref, end_ref, special_tags ,min_accuracy)
+      accuracy_res.append(accuracy)            
+      ref_accuracy_res.append(ref_accuracy)
+   
+      f.write('Input:              %s' % (sentences_train[i])+ "\n")
+      f.write('Expexted Result:    %s' % (answers_train[i])+ "\n")
+      f.write('Actual Result:      %s' % (result)+ "\n")
+      f.write('Reference Accuracy: %s' % (ref_accuracy)+ "\n")    
+      f.write('Accuracy:           %s' % (accuracy)+ "\n")
+
+  f.write("\n-------------------------------------------------------------------\n")
+  f.write('Toatl Reference Accuracy: %s' % (get_total_ref_accurcy(ref_accuracy_res))+ "\n") 
+  f.write('Toatl Accuracy:           %s' % (get_total_accurcy(accuracy_res))+ "\n")
+  print("Toatl reference accuracy for train data is", (get_total_ref_accurcy(ref_accuracy_res)))   
+  print(colored("Toatl accuracy for train data is" ,'green') , colored(get_total_accurcy(accuracy_res),'green'))   
+
+with open(os.path.join(corpus_path,"test.result"), 'w', encoding = 'utf-8') as f:
+  accuracy_res = []
+  ref_accuracy_res = []
+  for i in range(len(sentences_test)):
+      f.write("\n-------------------------------------------------------------------\n")
+      result = start_seq + " " + translate(sentences_test[i] + "\n")
+      accuracy = get_accurcy(answers_test[i], result, start_ref, end_ref, special_tags ,min_accuracy)
+      ref_accuracy = get_reference_accurcy(answers_test[i], result, start_ref, end_ref, special_tags ,min_accuracy)
+      accuracy_res.append(accuracy)            
+      ref_accuracy_res.append(ref_accuracy)
+   
+      f.write('Input:              %s' % (sentences_test[i])+ "\n")
+      f.write('Expexted Result:    %s' % (answers_test[i])+ "\n")
+      f.write('Actual Result:      %s' % (result)+ "\n")
+      f.write('Reference Accuracy: %s' % (ref_accuracy)+ "\n")    
+      f.write('Accuracy:           %s' % (accuracy)+ "\n")
+
+  f.write("\n-------------------------------------------------------------------\n")
+  f.write('Toatl Reference Accuracy: %s' % (get_total_ref_accurcy(ref_accuracy_res))+ "\n") 
+  f.write('Toatl Accuracy:           %s' % (get_total_accurcy(accuracy_res))+ "\n")
+  print("Toatl reference accuracy for test data is", (get_total_ref_accurcy(ref_accuracy_res)))   
+  print(colored("Toatl accuracy for test data is" ,'green') , colored(get_total_accurcy(accuracy_res),'green'))   
