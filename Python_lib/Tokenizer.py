@@ -53,8 +53,8 @@ stemmer = SnowballStemmer("english",)
 whitelist = set(list(wn.words()) + words.words())
 english_words = ""
 
-#with open(r'./Data/EnglishWords.txt') as word_file:
-#    english_words = set(word.strip().lower() for word in word_file)  
+with open(r'./Data/EnglishWords.txt') as word_file:
+    english_words = set(word.strip().lower() for word in word_file)  
 
 def stem_prefix(word, prefixes, roots):
     original_word = word
@@ -111,19 +111,25 @@ def get_suffix(word, root):
 
 # set option to 0 to running tokenizer on line
 # set option to 1 (default) to running tokenizer per word 
-def tokenizer(line, token_words, option = 1):
+def tokenizer(line, token_words, option = 1, with_count = 0):
     if option == 1:
         words = re.findall(r'\d+\([.,]\d\)*|\w+\.\w+|\w+|\S',line)
         for word in words:
             word = word.lower()
             if word in token_words:
+                if with_count == 1:
+                    token_words[word] = token_words[word][:3] + (token_words[word][3] + 1,)
                 continue
             #print(word)
             temp = removePref(word)
             prefix = get_prefix(word, temp)
             root = nlp(temp)[0].lemma_
             suffix = get_suffix(temp ,root)
-            token_words[word] = (prefix,root,suffix)
+            if with_count == 1:
+                token_words[word] = (prefix,root,suffix,1)
+            else:
+                token_words[word] = (prefix,root,suffix)
+
     else:
         token_line = " ".join([token.lemma_ for token in nlp(line)])
         if len(line.split()) == len(token_line.split()):
@@ -161,9 +167,13 @@ def save_tokens(file_name, token_words , with_count = 0):
                 print(f"{word} is not wrote to tokens, {sys.exc_info()}.")
 
 def split_to_tokens(word):
+    word = word.lower()
     temp = removePref(word)
     prefix = get_prefix(word, temp)
-    root = nlp(temp)[0].lemma_
+    try:
+        root = nlp(temp)[0].lemma_
+    except:
+        print(sys.exc_info())
     suffix = get_suffix(temp ,root)
     return (prefix,root,suffix)
 

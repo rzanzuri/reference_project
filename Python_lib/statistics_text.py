@@ -47,16 +47,16 @@ def check_ave_length_word(fname):
             if(line == "\n" or line == ' '):
                 continue
             line = line.rstrip()
-            words = line.split()
+#            words = re.findall(r'\d+[.,]\d+\([.,]\d\)*|\w+[\"\']\w+|\w+|\S',line)
+            words = re.findall(r'\d+[.,]\d+[.,]\d+|\d+[.,]\d+|\d+|\w+[\"\'\.]\w+|\w+|\S',line)
             for word in words:
                 #print(word)
-                word = re.findall(r'\d+[.,]\d+\([.,]\d\)*|\w+[\"\']\w+|\w+|\S',line)
                 if word in dict_words:
                     dict_words[word] += 1
                 else:
                     dict_words[word] = 1
-    sorted(dict_words, key= dict_words.get)
-    print(*dict_words.keys()[-20:])
+    #sorted(dict_words, key= dict_words.get)
+    # print(*dict_words.keys()[-20:])
     total_words = 0
     total_length_words = 0
     for word in dict_words:
@@ -77,12 +77,17 @@ def checking_tokenizer_of_all_text (fname, dict_file):
     count = 0
     missing_words = 0
     total_words = 0
+    percent = 0
 
     dict_words = Tokenizer.load_tokens(dict_file, 0)
     with open(fname,encoding='utf8') as f:
-        for line in f:
+        lines = f.readlines()
+        length = len(lines)
+        for line in lines:
             count += 1
-            if count % 76106 == 0: print(f"{(count/76106)*10}% was done.",f"\tmissing words: {missing_words}.", f"\tTotal words: {total_words}")
+            if count / length > percent: 
+                print(f"{(count/length)*100}% was done.",f"\tmissing words: {missing_words}.", f"\tTotal words: {total_words}")
+                percent += 0.1
             if(line == "\n" or line == ' '):
                 continue
             line = line.rstrip()
@@ -108,6 +113,7 @@ def checking_tokenizer_of_all_text (fname, dict_file):
 
 # loading token file and return the average of the tokens per word
 def check_ave_of_token (fname, dic = None):
+    missing_words = {}
     if dic == None:
         dict_words = Tokenizer.load_tokens(fname, with_count=1)
     else:
@@ -127,10 +133,17 @@ def check_ave_of_token (fname, dic = None):
                 count_word_with_partial += int(dict_words[word][3])
             word_count_tokens += token_length * int(dict_words[word][3])
         else:
-            print(f"missing word from dictt: {dict_words[word]}.")
+            #print(f"missing word from dictt: {dict_words[word]}.")
+            if (word not in missing_words):
+                missing_words[word] = 1
+            else:
+                missing_words[word] += 1
+    for word in missing_words:
+        print(word + ":",missing_words[word])
     print(f"The count of regular words: {word_count_regular}.")
     print(f"The count of partial words: {word_count_tokens}.")
     print(f"The count of words with partial: {count_word_with_partial}.")
     print("total:", word_count_tokens/word_count_regular)
     print("total2 (how many word with partial):", count_word_with_partial/word_count_regular)
-    
+
+#check_ave_length_word(r"C:\Users\rzanzuri\Desktop\reference_project\Data\hebrew_data\full_hebrew.txt")

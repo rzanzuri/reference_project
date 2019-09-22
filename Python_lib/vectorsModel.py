@@ -63,6 +63,7 @@ def get_model_vectors_by_file_path(file_path, dest_dir, win_size, iters = 10, mi
     file_name = basename(file_path).strip(".txt") + ".vm"
     model_path = join(dest_dir ,file_name )
     model.save(model_path)
+    model.similar_by_vector()
 
     print("End create model vectors at: " + str(datetime.datetime.now()))
 

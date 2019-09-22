@@ -1,4 +1,3 @@
-from tensorflow import keras
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, LSTM, Dense, Embedding, Flatten, TimeDistributed, Dropout, LSTMCell, RNN
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -33,10 +32,10 @@ vec_size = 300
 win_size = 10
 workers = multiprocessing.cpu_count() 
 epochs = 1
-limit = 10
+limit = 1000
 test_size = 0.2
 max_len_sent = 100
-BATCH_SIZE = 10
+BATCH_SIZE = 8
 
 start = datetime.datetime.now()
 print("start:", start)

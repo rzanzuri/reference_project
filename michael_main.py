@@ -15,6 +15,7 @@ import os
 from os import listdir,mkdir,rmdir
 from os.path import isfile, join,isdir
 import Python_lib.read_html as read_html
+from scipy import spatial
 #from tika import parser
 import re
 from Python_lib.textHandler import clean_hebrew_text_from_dir
@@ -133,7 +134,6 @@ def run_threads(thread_count, start, count, url, name):
     except:
         print ("Error: unable to start thread")
   
-
 def create_vec_model():
     from keras.models import Sequential
     from keras import layers
@@ -145,8 +145,9 @@ def create_vec_model():
     win_size = 12
     workers = multiprocessing.cpu_count() 
     vec_model_root_path = "./VecModels"
-    curpus_path = "./Data/hebrew_data/HebrewTextPart"
-
+    #curpus_path = "./Data/hebrew_data/HebrewTextPart"
+    curpus_path = "./Data/english_data/english_te"
+    
     vec_model = vectorsModel.get_model_vectors(curpus_path, vec_model_root_path, win_size, iters, min_count, vec_size, workers)
 
     return vec_model
@@ -238,10 +239,210 @@ def create_ans_for_rabanny_text(file_path):
                 wf.write(line.strip().replace('# ','').replace('$ ', '') + '\n')
                 wf.write(line.strip() + '\n')
 
+def hebrew_qualty(vec_model):
+    words = []
+    words.append(["ש לא"])
+    words.append(["ש ל א"])
+
+    words.append(["נקודה ות","נקודות"])
+    words.append(["נ ק ו ד ות"])
+    words.append(["נקודה ו ת","נקודות"])
+    words.append(["נ ק ו ד ו ת"])
+
+    words.append(["ה אחרונים","האחרונים"])
+    words.append(["האחרון ים","האחרונים"])
+    words.append(["ה אחרון ים","האחרונים"])
+    words.append(["ה אחרון י ם","האחרונים"])
+    words.append(["ה א ח ר ו נ י ם"])
+    words.append(["ה א ח ר ו נ ים"])
+
+    words.append(["ה שנים"])
+    words.append(["השנה ים","השנים"])
+    words.append(["ה שנה ים","השנים"])
+    words.append(["ה ש נ ים"])
+    words.append(["ה ש נ י ם"])
+
+    words.append(["כש אכלתי"])
+    words.append(["כש אכל תי"])
+    words.append(["כ ש אכל תי"])
+    words.append(["כש אכל ת י"])
+    words.append(["כ ש א כ ל ת י"])
+    # words.append([["ש","ל","י"]])
+    # words.append([["א","נ","י"]])
+    # words.append([["ש","ל"]])
+    # words.append([["י","ש"]])
+    # words.append([["כ","ן"]])
+    # words.append([["א","ת"]])
+    # words.append([["ע","ל"]])
+    # words.append([["כ","י"]])
+    # words.append([["ז","ה"]])
+    # words.append([["ל","א"]])
+    # words.append([["א","ו"]])
+    # words.append([["ה","ם"]])
+    # words.append([["כ","ך"]])
+    # words.append([["ר","ק"]])
+    # words.append([["ש","לא"]])
+    # words.append([["ב","כל"]])
+    # words.append([["ש","נ","ה","ים"],"שנים"])
+    # words.append([["נ","ק","ו","ד","ה","ות"],"נקודות"])
+    # words.append([["ה","ו","א"]])
+    # words.append([["א","ב","ל"]])
+    # words.append([["ה","י","א"]])
+    # words.append([["ה","י","ה"]])
+    # words.append([["נ","ק","ו","ד","ה"]])
+    # words.append([["ה","ק","ב","ו","צ","ה"]])
+    # words.append([["ה", "אחרון","ים"],"האחרונים"])
+    # words.append([["ה", "אחרון","ה"],"האחרונה"])
+    # words.append([["ה", "שנה","ים"],"השנים"])
+    # words.append([["טוב", "ה"]])
+    # words.append([["חודש", "ים"]])
+    # words.append([["ב", "ירושלים"]])
+    # words.append([["נקודה","ות"],"נקודות"])
+    # words.append([["ב","בית"]])
+
+    for word in words:
+        most_similar = vec_model.most_similar(positive=word[0].split(" "), topn = 1000000)
+        print("word:", word[0].split(" ") )
+        if len(word) == 1:
+            full_word = word[0].replace(" ", "")
+        else:
+            full_word = word[1]
+        for i, mo_sim in enumerate(most_similar):
+            if mo_sim[0] == full_word:
+                print( "number:" ,i ,mo_sim )             
+                break
+    # words.append([["ש","ל","י"],["שלי"]])
+    # words.append([["א","נ","י"],["אני"]])
+    # words.append([["ש","ל"],["של"]])
+    # words.append([["י","ש"],["יש"]])
+    # words.append([["כ","ן"],["כן"]])
+    # words.append([["נ","ק","ו","ד","ה"],["נקודה"]])
+    # words.append([["טוב", "ה"],["טובה"]])
+    # words.append([["נקודה","ות"],["נקודות"]])
+
+    # for word in words:
+    #     most_similar = vec_model.most_similar(positive=word[0], topn = 1000000)
+    #     print("word:", word[0] )
+    #     full_word = word[1]
+    #     for i, mo_sim in enumerate(most_similar):
+    #         if mo_sim[0] == full_word:
+    #             print( "number:" ,i ,mo_sim )
+    #             break
+
+def english_qualty(vec_model):
+    words = []
+
+    words.append(["un like"])
+    words.append(["un l i k e"])
+    words.append(["u n like"])
+    words.append(["u n l i k e"])
+
+    words.append(["like ly"])
+    words.append(["like l y"])
+    words.append(["l i k e ly"])
+    words.append(["l i k e l y"])
+
+    words.append(["dis like"])
+    words.append(["d i s like"])
+    words.append(["dis l i k e"])
+    words.append(["d i s l i k e"])
+
+    words.append(["anti virus"])
+    #words.append(["anti - virus"])
+    words.append(["a n t i virus"])
+    words.append(["anti v i r u s"])
+    words.append(["a n t i v i r u s"])
+
+
+    words.append(["be ing"])
+    words.append(["be i n g"])
+    words.append(["b e ing"])
+    words.append(["b e i n g"])
+
+    words.append(["include ing","including"])
+    words.append(["i n c l u d ing","including"])
+    words.append(["include i n g","including"])
+
+    words.append(["return ed"])
+    words.append(["re turned"])
+    words.append(["re turn ed"])
+    words.append(["r e turn ed"])
+    words.append(["re turn e d"])
+    words.append(["r e turn e d"])
+    words.append(["r e t u r n e d"])
+    words.append(["re t u r n ed"])
+
+    words.append(["un usual"])
+    words.append(["u n usual"])
+    words.append(["un u s u a l"])
+    words.append(["u n u s u a l"])
+
+    words.append(["worth less"])
+    words.append(["w o r t h less"])
+    words.append(["worth l e s s"])
+    words.append(["w o r t h l e s s"])
+
+    # words.append([["t","h","e"]])
+    # words.append([["a","n","d"]])
+    # words.append([["b","e"]])
+    # words.append([["be","en"]])
+    # words.append([["be","ing"]])
+    # words.append([["include","ing"],"including"])
+    # words.append([["child","ren"]])
+    # words.append([["re","turn","ed"]])
+    # words.append([["work","ed"]])
+    # words.append([["continue","ed"],"continued"])
+    # words.append([["continue","d"]])
+    # words.append([["do","es"]])
+    # words.append([["go","es"]])
+    # print(vec_model.wv.vectors.shape[0])
+    #words.append([["א","נ","י"]])
+    #words.append([["ש","נ","ה","ים"],"שנים"])
+
+    for word in words:
+        vector = max_polling(vec_model, word[0].split())
+        max_poling_similar = 1 - vector_dist(vector, vec_model.wv[word[0].replace(" ", "")])
+        most_similar = vec_model.most_similar(positive=word[0].split(" "), topn = 1000000)
+        print("word:", word[0].split(" ") )
+        print("Distance with max poling:", max_poling_similar )
+        if len(word) == 1:
+            full_word = word[0].replace(" ", "")
+        else:
+            full_word = word[1]
+        for i, mo_sim in enumerate(most_similar):
+            if mo_sim[0] == full_word:
+                print( "number:" ,i ,mo_sim )             
+                break
+def vector_dist(vec1, vec2):
+    dst = spatial.distance.cosine(vec1, vec2)
+    return dst
+
+
+def max_polling(model, broken_word):
+    new_vector = np.zeros(300)
+    for i in range(300):
+        #maximum = None
+        maximum = 0
+        for partial in broken_word:
+            #if maximum == None or maximum < model.wv[partial][i]:
+            #    maximum = model.wv[partial][i]
+            maximum += model.wv[partial][i]
+        new_vector[i] = maximum
+    return new_vector
+
+def get_distance_of_letters(vec_model, word):
+    most_similar = vec_model.most_similar(positive=list(word), topn = 1000000)
+    full_word = word
+
+    for i, mo_sim in enumerate(most_similar):
+        if mo_sim[0] == full_word:
+            print( "number:" ,i + 1 ,mo_sim )          
+            return( i + 1, mo_sim[1])
+
 if __name__ == "__main__":
     start = datetime.datetime.now()
     print("start:", start)
-    create_ans_for_rabanny_text('./Data/RabannyText/RabannyText_3000_Sen.txt')
+    #create_ans_for_rabanny_text('./Data/RabannyText/RabannyText_3000_Sen.txt')
     # base_path = "C:\\hebrewNER-1.0.1-Win\\bin\\"
     # with open("./Data/HebrewText/HebrewText_3000_Sen.txt",'r',encoding='utf-8') as f:
     #     text = f.readlines()
@@ -261,13 +462,97 @@ if __name__ == "__main__":
     
     # create_rand_sents()
     vec_model = create_vec_model()
-    most_similar = vec_model.most_similar(positive=["נוסף", "ת"], topn = 10)
-    for sim_line in most_similar:
-        if sim_line[0] in vec_model.wv.vocab:
-            print(sim_line[0] + "\n" + str(sim_line[1]) + "\n")
-                
+    english_qualty(vec_model)
+    #hebrew_qualty(vec_model)
+    print(vec_model.wv.vectors.shape[0])
+    exit()
+
+    # with open(r".\Data\hebrew_data\full_hebrew.txt", encoding="utf-8") as f:
+    #     lines =  f.readlines()
+    #     regular_words = set()
+    #     for line in lines:
+    #         words = re.findall(r'\d+[.,]\d+[.,]\d+|\d+[.,]\d+|\d+|\w+[\"\']\w+|\w+|\S',line)
+    #         for word in words:
+    #             if word not in regular_words:
+    #                 regular_words.add(word)
+    # with open("./regular_words_hebrew.txt","w",encoding="utf-8") as f:
+    #     for word in regular_words:
+    #         print(word,file=f)
+
+    # with open("./regular_words_hebrew.txt", encoding = "utf-8") as f:
+    #     lines =  f.readlines()
+    #     regular_words = set()
+    #     for reg_word in lines:
+    #         regular_words.add(reg_word.lower().strip())
+    #     # for word in regular_words:
+    #     #     print(word, file = out)
+
+    # total_words = []
+    # missing_words = []
+    # for word in vec_model.wv.vocab:
+    #     if word.lower() in regular_words:
+    #         total_words.append(word)
+    #     else:
+    #         missing_words.append(word)
+
+    # print("Total words:", len(total_words))
+    # print("Missing words:", len(missing_words))
+    # print("Misiing words:", missing_words)
+    
+    total_amount_2 = 0
+    total_place_2 = 0
+    count_2 = 0
+    total_amount_3 = 0
+    total_place_3 = 0
+    count_3 = 0
+    total_amount_4 = 0
+    total_place_4 = 0
+    count_4 = 0
+    total_amount_5 = 0
+    total_place_5 = 0
+    count_5 = 0
+    for i, word in enumerate(vec_model.wv.vocab):
+        # if i == 10000:
+        #     break
+        if len(word) == 2:
+            tup = get_distance_of_letters(vec_model, word)
+            total_amount_2 += tup[1]
+            total_place_2 += tup[0]
+            count_2 += 1
+        elif len(word) == 3:
+            tup = get_distance_of_letters(vec_model, word)
+            total_amount_3 += tup[1]
+            total_place_3 += tup[0]
+            count_3 += 1
+        # elif len(word) == 4:
+        #     tup = get_distance_of_letters(vec_model, word)
+        #     total_amount_4 += tup[1]
+        #     total_place_4 += tup[0]
+        #     count_4 += 1
+        # elif len(word) == 5:
+        #     tup = get_distance_of_letters(vec_model, word)
+        #     total_amount_5 += tup[1]
+        #     total_place_5 += tup[0]
+        #     count_5 += 1
 
 
+    print("total vectors len 2:", count_2)
+    print("total average len 2:", total_amount_2/count_2)
+    print("total plcae len 2:", total_place_2/count_2)
+    print("total vectors len 3:", count_3)
+    print("total average len 3:", total_amount_3/count_3)
+    print("total plcae len 3:", total_place_3/count_3)
+    print("total vectors len 4:", count_4)
+    print("total average len 4:", total_amount_4/count_4)
+    print("total plcae len 4:", total_place_4/count_4)
+    print("total vectors len 5:", count_5)
+    print("total average len 5:", total_amount_5/count_5)
+    print("total plcae len 5:", total_place_5/count_5)
+
+
+    #hebrew_qualty(vec_model)
+
+    
     # create_ans_file("./Data/‏‏HebrewTextForNER/HebrewTextForNER_3000sen.ans", 550, 550 , "./Data/‏‏HebrewTextForNER/HebrewTextForNER.ans")
     # create_rand_sents()    
     # create_vec_model()
